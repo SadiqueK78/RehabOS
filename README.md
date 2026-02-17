@@ -299,12 +299,6 @@ Contributions, feature suggestions, and feedback are welcome.
 
 ---
 
-# 📜 License
-
-This project is licensed under the terms specified in the `LICENSE` file.
-
----
-
 # 🎯 Final Statement
 
 RehabOS bridges the gap between physiotherapy expertise and accessible home-based rehabilitation using AI, computer vision, and intelligent analytics.
