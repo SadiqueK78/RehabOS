@@ -24,7 +24,6 @@ RehabOS leverages computer vision and AI-driven logic to help users **track, cor
 * [Future Enhancements](#-future-enhancements)
 * [Testing](#-testing)
 * [Contribution](#-contribution)
-* [License](#-license)
 
 ---
 
