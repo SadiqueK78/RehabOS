@@ -1,0 +1,257 @@
+/* ───── Root ───── */
+.faq-root {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  padding-bottom: 80px;
+}
+
+/* ───── Hero ───── */
+.faq-hero {
+  position: relative;
+  text-align: center;
+  padding: 100px 24px 60px;
+  overflow: hidden;
+}
+.faq-hero-glow {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.faq-hero-title {
+  font-size: 2.8rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #ffffff 30%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 1;
+}
+.faq-hero-subtitle {
+  font-size: 1.1rem !important;
+  color: #9ca3af;
+  max-width: 640px;
+  margin: 16px auto 0 !important;
+  position: relative;
+  z-index: 1;
+  line-height: 1.7 !important;
+}
+
+/* ───── Category Pills ───── */
+.faq-categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.faq-category-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid #2a2a2a;
+  background: #141414;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+.faq-category-pill:hover {
+  border-color: #6366f1;
+  color: #c7d2fe;
+  background: #1a1a2e;
+}
+.faq-category-pill.active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+}
+.pill-icon {
+  font-size: 1.1rem;
+}
+
+/* ───── FAQ Content ───── */
+.faq-content {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.faq-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.faq-section-icon {
+  font-size: 1.8rem;
+}
+.faq-section-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ───── FAQ Item ───── */
+.faq-item {
+  background: #141414;
+  border: 1px solid #1e1e1e;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.faq-item:hover {
+  border-color: #333;
+}
+.faq-item.open {
+  border-color: #6366f1;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.1);
+}
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e0e0e0;
+  user-select: none;
+}
+.faq-item.open .faq-question {
+  color: #c7d2fe;
+}
+.faq-chevron {
+  color: #6b7280;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.faq-chevron.rotated {
+  transform: rotate(180deg);
+  color: #818cf8;
+}
+.faq-answer {
+  padding: 0 24px 20px;
+  color: #9ca3af;
+  line-height: 1.75;
+  font-size: 0.95rem;
+  animation: fadeIn 0.25s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ───── Stats Bar ───── */
+.faq-stats {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin: 60px auto 0;
+  padding: 36px 24px;
+  max-width: 700px;
+  border-top: 1px solid #1e1e1e;
+  border-bottom: 1px solid #1e1e1e;
+}
+.faq-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.faq-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.faq-stat-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ───── Contact Section ───── */
+.faq-contact {
+  text-align: center;
+  max-width: 600px;
+  margin: 60px auto 0;
+  padding: 0 24px;
+}
+.faq-contact h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px;
+}
+.faq-contact p {
+  color: #9ca3af;
+  margin-bottom: 32px;
+  font-size: 1rem;
+}
+
+/* ───── Responsive ───── */
+@media (max-width: 768px) {
+  .faq-hero {
+    padding: 80px 16px 40px;
+  }
+  .faq-hero-title {
+    font-size: 2rem !important;
+  }
+  .faq-categories {
+    gap: 8px;
+    padding: 0 16px 30px;
+  }
+  .faq-category-pill {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+  }
+  .faq-content {
+    padding: 0 16px;
+  }
+  .faq-question {
+    padding: 16px 18px;
+    font-size: 0.93rem;
+  }
+  .faq-answer {
+    padding: 0 18px 16px;
+    font-size: 0.9rem;
+  }
+  .faq-stats {
+    gap: 30px;
+  }
+  .faq-stat-value {
+    font-size: 1.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .faq-hero-title {
+    font-size: 1.6rem !important;
+  }
+  .faq-category-pill .pill-icon {
+    display: none;
+  }
+  .faq-stats {
+    gap: 20px;
+  }
+}

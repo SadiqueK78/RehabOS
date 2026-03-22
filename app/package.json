@@ -14,7 +14,16 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
     "firebase": "^10.14.1",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.1",
+    "pdfjs-dist": "^3.11.174",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.2",
@@ -25,8 +34,11 @@
     "recharts": "^3.6.0",
     "web-vitals": "^2.1.4"
   },
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
+    "server": "node -r dotenv/config server/server.js",
+    "dev": "concurrently \"npm run server\" \"npm start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

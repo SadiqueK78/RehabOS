@@ -64,7 +64,7 @@ const MyExerSights = () => {
         justifyContent: "center",
       }}>
       <Typography variant="h1" sx={{ mb: "1.5rem" }}>
-        Your ExerSights History
+        Your RehabOS History
       </Typography>
       <ExerciseHistoryTable exerciseHistory={exerciseHistory} setExerciseHistory={setExerciseHistory} />
       <Typography variant="body2" sx={{ color: "text.secondary", m: "2rem" }}>

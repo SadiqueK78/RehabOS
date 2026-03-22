@@ -1,163 +1,242 @@
 import { React, useState } from "react";
-import {
-  Typography,
-  Box,
-  List,
-  ListItemButton,
-  ListItemText,
-  Collapse,
-  Divider,
-  Link,
-} from "@mui/material";
+import { Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ContactForm from "../components/ContactForm";
+import "./FAQ.css";
 
-const FAQItem = ({ question, answer }) => {
+const categories = [
+  {
+    title: "Getting Started",
+    icon: "🚀",
+    faqs: [
+      {
+        q: "Is RehabOS free to use?",
+        a: "Yes! RehabOS is 100% free to use. It's also fully open-source.",
+      },
+      {
+        q: "How do I sign in?",
+        a: "Click the Sign In button in the navbar and use your Google account. This lets you save exercise history, preferences, programs, and rehab plans across devices.",
+      },
+      {
+        q: "What happens to my personal data?",
+        a: "Absolutely nothing beyond what's needed. RehabOS stores exercise history and plan data in Firebase linked to your email. We never share or sell personal data.",
+      },
+      {
+        q: "What browser should I use?",
+        a: "We recommend Google Chrome for the best experience. If something isn't working, try a hard refresh (Ctrl+Shift+R) to clear cached content.",
+      },
+    ],
+  },
+  {
+    title: "AI Pose Detection & Exercises",
+    icon: "🤖",
+    faqs: [
+      {
+        q: "How does pose detection work?",
+        a: "RehabOS uses Google's MediaPipe framework to track 33 body landmarks via your webcam. It computes joint angles in real time to identify exercise phases, count reps, and provide form feedback — no wearables needed.",
+      },
+      {
+        q: "What are the ideal conditions for using RehabOS?",
+        a: "Ensure your full body is in frame, you're the only person visible, your clothing contrasts with the background, the room is well-lit, and you follow the camera setup instructions in the Help tab on each exercise page.",
+      },
+      {
+        q: "Can I use it with multiple people in frame?",
+        a: "We don't recommend it for regular exercises — the model may not track the correct person. However, we have a two-player Push-Up Game and Squat Game where two people can compete simultaneously!",
+      },
+      {
+        q: "How many exercises are available?",
+        a: "RehabOS offers 16+ AI-tracked exercises including Squat, Push-Up, Plank, Dead Bug, Bridge, Lunge, Leg Raise, Shoulder Press, Tree Pose, and more. Each comes with a tutorial video, real-time feedback, and automatic rep counting.",
+      },
+      {
+        q: "Can I customise exercise settings?",
+        a: "Yes! Each exercise page has a Settings tab where you can adjust target angles, rep thresholds, and other parameters to match your personal needs and ability level.",
+      },
+    ],
+  },
+  {
+    title: "Rehabilitation Plans",
+    icon: "🩺",
+    faqs: [
+      {
+        q: "How do I create a rehab plan?",
+        a: "Navigate to the Rehab page, describe your injury or condition, and our AI will generate a personalised weekly exercise plan with specific exercises, sets, reps, frequency, and a weekly schedule.",
+      },
+      {
+        q: "What happens after I submit a rehab plan?",
+        a: "Your plan is submitted with a \"Pending\" status and sent for physiotherapist review. A licensed therapist will review, potentially modify, and either approve or reject it with notes.",
+      },
+      {
+        q: "Can I see my plan before it's approved?",
+        a: "You can view the plan status on the Rehab page, but the detailed rehab analytics and recovery score on the AI Analysis page will only appear once the plan is approved by a therapist.",
+      },
+      {
+        q: "What if the therapist modifies my plan?",
+        a: "If a therapist adjusts exercises, reps, sets, frequency, adds new exercises, or removes some, those changes are automatically reflected in your plan and AI Analysis dashboard once approved.",
+      },
+    ],
+  },
+  {
+    title: "Therapist Portal",
+    icon: "👨‍⚕️",
+    faqs: [
+      {
+        q: "What is the Therapist Portal?",
+        a: "It's a dedicated, separate dashboard for licensed physiotherapists. Therapists have their own login, navigation, and tools — completely independent from the patient-facing app.",
+      },
+      {
+        q: "How do I sign up as a therapist?",
+        a: "Click the therapist login option on the welcome modal, or navigate to the Therapist Login page. Sign up with your email, name, license number, and specialisation. Therapist accounts use email/password authentication.",
+      },
+      {
+        q: "What can therapists do?",
+        a: "Therapists can review pending rehab plans, approve/reject/modify plans (including adding new exercises), leave notes for patients, view full patient AI analytics, recovery scores, and monitor individual patient progress in real time.",
+      },
+      {
+        q: "How does the Monitor Patient feature work?",
+        a: "In the Patient Analytics tab, click \"Monitor Patient\" on any patient card. This opens a full AI Analysis view for that patient — the same charts, recovery score, exercise progress, and rehab plan details the patient sees.",
+      },
+    ],
+  },
+  {
+    title: "AI Analysis & Recovery Score",
+    icon: "📊",
+    faqs: [
+      {
+        q: "What is the AI Analysis Dashboard?",
+        a: "It's a comprehensive analytics page showing your exercise performance — total sessions, reps, duration, charts (reps over time, exercise distribution, average reps per exercise), and if you have an approved rehab plan, detailed recovery analytics.",
+      },
+      {
+        q: "How is the Recovery Score calculated?",
+        a: "The Recovery Score (0–100) is made up of four components: Sessions (30 pts) — how many rehab sessions you've completed vs expected; Coverage (20 pts) — how many plan exercises you've done; Consistency (25 pts) — how many of the last 7 days you exercised; Improvement (25 pts) — whether your reps are trending up.",
+      },
+      {
+        q: "What is the streak system?",
+        a: "Your streak counts consecutive days with at least one exercise session. Streaks of 3+ days show a fire emoji, and 7+ days show double fire. It's displayed alongside your recovery score to keep you motivated.",
+      },
+      {
+        q: "Can I download or email my report?",
+        a: "Yes! Click \"Download & Email Report\" on the AI Analysis page. It generates a comprehensive PDF with all your analytics, plan details, and session history — and emails it to your registered address via SMTP.",
+      },
+    ],
+  },
+  {
+    title: "Physio Chatbot",
+    icon: "💬",
+    faqs: [
+      {
+        q: "What is the Physio Chatbot?",
+        a: "It's an AI-powered assistant (Gemini 2.5 Pro) available on every page via the chat bubble in the bottom-right. Ask any physiotherapy question and get detailed, evidence-based answers.",
+      },
+      {
+        q: "Can the chatbot recommend exercises?",
+        a: "Yes! When you ask about specific conditions or exercises, the chatbot provides structured responses with embedded instruction videos and direct links to start exercises in RehabOS.",
+      },
+      {
+        q: "Is the chatbot a replacement for a real therapist?",
+        a: "No. The chatbot provides general physiotherapy guidance, but it's not a substitute for professional medical advice. Always consult a licensed physiotherapist for personalised treatment — which is why RehabOS also includes the Therapist Portal.",
+      },
+    ],
+  },
+  {
+    title: "Accuracy & Limitations",
+    icon: "⚠️",
+    faqs: [
+      {
+        q: "Can I trust RehabOS for accurate feedback?",
+        a: "We've developed RehabOS with accuracy in mind, but we cannot guarantee 100% correctness. Exercise feedback and stats may not always be accurate. Always consult a professional trainer before performing exercises. Use at your own risk.",
+      },
+      {
+        q: "What can RehabOS NOT do?",
+        a: "Since RehabOS relies on joint angle analysis via webcam, it's possible to \"cheat\" by positioning your limbs without actually performing exercises. It also can't detect muscle engagement, breathing, or internal pain — which is why therapist oversight is built into the platform.",
+      },
+      {
+        q: "A feature isn't working. What should I do?",
+        a: "First, make sure you're using Google Chrome. Try a hard refresh (Ctrl+Shift+R). If the issue persists, use the contact form below — we'd love to help!",
+      },
+    ],
+  },
+];
+
+const FAQItem = ({ q, a }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <Box>
-      <ListItemButton onClick={() => setOpen(!open)} sx={{ px: 0 }}>
-        <ListItemText primary={<Typography variant="h5">{question}</Typography>} />
-        {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-      </ListItemButton>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        {answer.map((ans) => (
-          <Typography
-            variant="body1"
-            sx={{ textAlign: "left", mb: "0.5rem", color: "text.secondary" }}>
-            {ans}
-          </Typography>
-        ))}
-      </Collapse>
-      <Divider />
-    </Box>
+    <div className={`faq-item ${open ? "open" : ""}`} onClick={() => setOpen(!open)}>
+      <div className="faq-question">
+        <span>{q}</span>
+        <ExpandMoreIcon className={`faq-chevron ${open ? "rotated" : ""}`} />
+      </div>
+      {open && <div className="faq-answer">{a}</div>}
+    </div>
   );
 };
 
 function FAQ() {
-  const faqData = [
-    // {
-    //   question: "",
-    //   answer: [
-    //     "Yes! ExerSights is 100% free to use! ExerSights is also 100% open source, and you can find the source code at: https://github.com/AI-Coach-PT/ExerSights",
-    //   ],
-    // },
-    {
-      question: "How do I use RehabOS?",
-      answer: [
-        "See our tutorial video on the home page (you may have to scroll down)! It will walk you through how to use every part of RehabOS thoroughly, and enable you to improve your exercise performance immediately!",
-      ],
-    },
-    {
-      question: "What does logging in to RehabOS through Google Single-Sign On do for me?",
-      answer: [
-        "Logging into RehabOS allows you to edit and store exercise angle preferences, pinned exercises (on the catalog page), and custom-made exercise programs on Google Firebase, allowing you to use RehabOS on multiple devices and synchronize your preferences and programs! RehabOS does not store any of your personal data.",
-      ],
-    },
-    {
-      question: "What happens to my personal data?",
-      answer: ["Absolutely nothing. RehabOS does not store any of your personal data."],
-    },
-    {
-      question: "Can I use RehabOS in a crowded environment, or even with multiple people?",
-      answer: [
-        "We do not advise using RehabOS in a crowded environment. While it is possible for the Mediapipe computer vision model (see the next question) to detect more than one person in the frame, we have limited control over the model and cannot guarantee that it will always detect the correct person performing the exercise. By default, ExerSights is programmed to assume only one person is in the frame.",
-        "That said, we are actively working on a two-player game feature, where two people can be in frame simultaneously and compete against each other. Look out for this feature soon!",
-      ],
-    },
-    {
-      question: "What are the ideal conditions for using RehabOS?",
-      answer: [
-        "As a software-only AI coach/physical therapist, RehabOS is limited in its capabilities. To best use our app, we recommend using the app under the following conditions:",
-        "- You are fully in frame, such that the webcam display shows your entire body.",
-        "- You are the only person in frame. See the previous FAQ for details!",
-        "- You are wearing colors that do not match your background; that is, your clothing is in high contrast with your background.",
-        "- You are in a well-lit environment.",
-        "- You followed the camera setup instructions in the 'Help' tab located on the feedback panel in every page.",
-        "- You have customized the target angle(s) of the exercise(s) you are performing via the 'Settings' tab located on the feedback panel in every page, to best fit your individual needs.",
-      ],
-    },
-    {
-      question: "What is RehabOS not capable of?",
-      answer: [
-        "As a software-only AI coach/physical therapist, RehabOS is limited in its capabilities. To understand its limitations, it is appropriate to understand how RehabOS provides real-time feedback.",
-        "At its core, RehabOS leverages Google's Mediapipe framework to precisely locate your joints. RehabOS then computes the angles between relevant joints for specific exercises. By analyzing these angles, RehabOS identifies which phase of an exercise you're currently performing, and provides real-time, personalized feedback to guide your workout.",
-        "As a result, it is possible to cheat RehabOS’ feedback and repetition counter by not actually performing the exercises and just bending your limbs into the appropriate positions; however, Team does not recommend this, as this would only waste your own time that you can be using to improve your general fitness.",
-      ],
-    },
-    {
-      question: "Can I trust RehabOS to provide me accurate feedback?",
-      answer: [
-        "We have developed RehabOS with accuracy and correctness in mind . However, we cannot guarantee accuracy and correctness, so we have to reiterate our disclaimer found on the homepage.",
-        "Exercise feedback and stats provided may not always be accurate. We are not liable for inaccurate feedback or any resulting injuries. Always consult a professional trainer before performing exercises. Use at your own risk.",
-      ],
-    },
-    {
-      question: "A particular feature is not working! What do I do?",
-      answer: [
-        "We are sorry to hear our feature is not working for you! We recommend using Google Chrome as your browser, so ensure you are using that if a feature is not working.",
-        "If you are already on Chrome, please also try to perform a hard refresh on the ExerSights page so that you are not using any stale, cached content.",
-        "If nothing is working, leave us a message below! We would love to help you out!",
-      ],
-    },
-  ];
-
-  const [q1Open, setQ1Open] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(0);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        textAlign: "center",
-        padding: "0.5rem",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
-      <Typography variant="h1" gutterBottom>
-        Frequently Asked Questions
-      </Typography>
-      <Box sx={{ width: "60rem", maxWidth: "90%", mb: "1.5rem" }}>
-        <List disablePadding>
-          {/* Explicitly write out the first question since it has a hyperlink */}
-          <Box>
-            <ListItemButton onClick={() => setQ1Open(!q1Open)} sx={{ px: 0 }}>
-              <ListItemText
-                primary={<Typography variant="h5">{"Is RehabOS free to use?"}</Typography>}
-              />
-              {q1Open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </ListItemButton>
-            <Collapse in={q1Open} timeout="auto" unmountOnExit>
-              <Typography
-                variant="body1"
-                sx={{ textAlign: "left", mb: "0.5rem", color: "text.secondary" }}>
-                {
-                  "Yes! RehabOS is 100% free to use!"
-                }
-              </Typography>
-            </Collapse>
-            <Divider />
-          </Box>
+    <div className="faq-root">
+      {/* Hero */}
+      <div className="faq-hero">
+        <div className="faq-hero-glow" />
+        <Typography variant="h2" className="faq-hero-title">
+          Frequently Asked Questions
+        </Typography>
+        <Typography className="faq-hero-subtitle">
+          Everything you need to know about RehabOS — exercises, rehab plans, therapist portal, AI analytics, and more.
+        </Typography>
+      </div>
 
-          {faqData.map((faq) => (
-            <FAQItem question={faq.question} answer={faq.answer} />
+      {/* Category Pills */}
+      <div className="faq-categories">
+        {categories.map((cat, i) => (
+          <button
+            key={i}
+            className={`faq-category-pill ${activeCategory === i ? "active" : ""}`}
+            onClick={() => setActiveCategory(i)}
+          >
+            <span className="pill-icon">{cat.icon}</span>
+            <span>{cat.title}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* FAQ Content */}
+      <div className="faq-content">
+        <div className="faq-section-header">
+          <span className="faq-section-icon">{categories[activeCategory].icon}</span>
+          <h2>{categories[activeCategory].title}</h2>
+        </div>
+        <div className="faq-list">
+          {categories[activeCategory].faqs.map((faq, i) => (
+            <FAQItem key={`${activeCategory}-${i}`} q={faq.q} a={faq.a} />
           ))}
-        </List>
-      </Box>
+        </div>
+      </div>
 
-      <Box sx={{ width: "60rem", maxWidth: "90%" }}>
-        <Typography variant="h5" sx={{ width: "60rem", maxWidth: "90%" }}>
-          Another concern we did not address, or have additional feedback?
-        </Typography>
-        <Typography variant="h6" sx={{ mb: "1rem", color: "text.secondary" }}>
-          We always want to hear from you! Contact us using the form below!
-        </Typography>
-      </Box>
+      {/* Quick Stats */}
+      <div className="faq-stats">
+        <div className="faq-stat">
+          <span className="faq-stat-value">{categories.reduce((s, c) => s + c.faqs.length, 0)}</span>
+          <span className="faq-stat-label">Questions Answered</span>
+        </div>
+        <div className="faq-stat">
+          <span className="faq-stat-value">{categories.length}</span>
+          <span className="faq-stat-label">Categories</span>
+        </div>
+        <div className="faq-stat">
+          <span className="faq-stat-value">16+</span>
+          <span className="faq-stat-label">AI Exercises</span>
+        </div>
+      </div>
 
-      <ContactForm />
-    </Box>
+      {/* Contact */}
+      <div className="faq-contact">
+        <h2>Still Have Questions?</h2>
+        <p>We'd love to hear from you. Send us a message and we'll get back to you.</p>
+        <ContactForm />
+      </div>
+    </div>
   );
 }
 

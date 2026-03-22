@@ -26,7 +26,7 @@ function SquatPage() {
   const [hipAngleFeedback, setHipAngleFeedback] = useState("");
   const [currKneeAngle, setCurrKneeAngle] = useState(0);
   const [repCount, setRepCount] = useState(0);
-  const [color, setColor] = useState("white");
+  const [color, setColor] = useState("#ffffff");
   const [angleView, setAngleView] = useState(true);
 
   // Object containing key-value pair of target angle label(s) and corresponding value(s);
@@ -100,6 +100,7 @@ function SquatPage() {
       targetAngles={targetAngles}
       color={color}
       repCount={repCount}
+      instructionsVideo={instructionsVideoSquat}
     />
   );
 }

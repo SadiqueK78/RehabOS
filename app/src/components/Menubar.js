@@ -26,6 +26,8 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
+import HealingIcon from "@mui/icons-material/Healing";
+import VideocamIcon from "@mui/icons-material/Videocam";
 import { auth, provider } from "../firebaseConfig";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -44,6 +46,8 @@ function Menubar(props) {
     { text: "CATALOG", path: "/catalog", icon: <ListIcon /> },
     { text: "PROGRAM", path: "/program", icon: <ContentPasteIcon /> },
     { text: "AI ANALYSIS", path: "/ai-analysis", icon: <AutoGraphIcon /> },
+    { text: "REHAB", path: "/rehab-plan", icon: <HealingIcon /> },
+    { text: "SESSIONS", path: "/book-session", icon: <VideocamIcon /> },
     { text: "FAQ", path: "/faq", icon: <EmailIcon /> },
     { text: "ABOUT", path: "/about", icon: <InfoIcon /> },
   ];
@@ -163,7 +167,7 @@ function Menubar(props) {
               sx={{ gap: "2px", color: "text.primary" }}>
               <AccountCircleIcon />
               <Typography fontWeight={500} color="text.primary" sx={{ overflow: "none" }}>
-                MY EXERSIGHTS
+                MY RehabOS
               </Typography>
             </IconButton>
           )}

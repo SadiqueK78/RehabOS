@@ -16,6 +16,14 @@ import detectPose from "../utils/models/PoseDetector";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
+const COLOR_MAP = {
+  white: "#ffffff",
+  red: "#ef4444",
+  yellow: "#facc15",
+  green: "#22c55e",
+};
+const toHex = (c) => COLOR_MAP[c] || c || "#ffffff";
+
 function ExerciseBoxGame({
   title,
   feedbackPanel,
@@ -227,11 +235,11 @@ function ExerciseBoxGame({
         {/* Video/Webcam */}
         <Box
           sx={{
-            border: `6px solid ${color || "white"}`,
+            border: `6px solid ${toHex(color)}`,
             borderRadius: "1rem",
             overflow: "hidden",
             position: "relative",
-            boxShadow: `0px 0px 65px 0px ${color}`,
+            boxShadow: `0px 0px 65px 0px ${toHex(color)}`,
             width: "100%",
             maxWidth: "900px",
             "@media (orientation: landscape)": {

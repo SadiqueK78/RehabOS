@@ -16,9 +16,19 @@ import detectPose from "../utils/models/PoseDetector";
 import OverlayBox from "./CounterGraphic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
+import CloseIcon from "@mui/icons-material/Close";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { unlockAudio } from "../utils/helpers/Audio";
+
+const COLOR_MAP = {
+  white: "#ffffff",
+  red: "#ef4444",
+  yellow: "#facc15",
+  green: "#22c55e",
+};
+
+const toHex = (c) => COLOR_MAP[c] || c || "#ffffff";
 
 /**
  * ExerciseBox component - A reusable layout component for exercise tracking pages.
@@ -53,7 +63,9 @@ function ExerciseBox({
   handleReset,
   auth,
   isAuth,
+  instructionsVideo,
 }) {
+  const [showTutorial, setShowTutorial] = useState(!!instructionsVideo);
   const [useVideo, setUseVideo] = useState(false);
   const [availableCameras, setAvailableCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(
@@ -198,6 +210,72 @@ function ExerciseBox({
 
   return (
     <Box sx={{ padding: "0.5rem" }}>
+      {/* Tutorial Overlay */}
+      <Modal open={showTutorial} onClose={() => setShowTutorial(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(0,0,0,0.92)",
+            zIndex: 1500,
+            p: 3,
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{ color: "#fff", fontWeight: 700, mb: 1, textAlign: "center" }}
+          >
+            {title}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ color: "#94a3b8", mb: 3, textAlign: "center" }}
+          >
+            Watch the instruction video before you begin
+          </Typography>
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: 720,
+              aspectRatio: "16/9",
+              borderRadius: 3,
+              overflow: "hidden",
+              border: "2px solid #1e293b",
+              mb: 3,
+            }}
+          >
+            <iframe
+              src={instructionsVideo}
+              title="Exercise Tutorial"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ width: "100%", height: "100%", border: "none" }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => setShowTutorial(false)}
+            startIcon={<CloseIcon />}
+            sx={{
+              bgcolor: "#6366f1",
+              px: 5,
+              py: 1.5,
+              borderRadius: 3,
+              fontWeight: 700,
+              fontSize: 16,
+              textTransform: "none",
+              "&:hover": { bgcolor: "#4f46e5" },
+            }}
+          >
+            Skip Tutorial
+          </Button>
+        </Box>
+      </Modal>
+
       <Modal open={showSummary} onClose={handleSummaryCloseWithSave}>
         <Box
           sx={{
@@ -296,13 +374,13 @@ function ExerciseBox({
         }}>
         <Box
           sx={{
-            border: `6px solid ${color || "white"}`,
+            border: `6px solid ${toHex(color)}`,
             borderRadius: "1rem",
             overflow: "hidden",
             my: "1.25rem",
             display: useVideo ? "none" : "",
             position: "relative",
-            boxShadow: `0px 0px 65px 0px ${color}`,
+            boxShadow: `0px 0px 65px 0px ${toHex(color)}`,
             width: "100%",
             maxWidth: "900px",
             "@media (orientation: landscape)": {
@@ -323,12 +401,12 @@ function ExerciseBox({
 
         <Box
           sx={{
-            border: `6px solid ${color || "white"}`,
+            border: `6px solid ${toHex(color)}`,
             borderRadius: "8px",
             overflow: "hidden",
             padding: "5px",
             display: useVideo ? "" : "none",
-            boxShadow: `0px 0px 65px 0px ${color}`,
+            boxShadow: `0px 0px 65px 0px ${toHex(color)}`,
             width: "100%",
             maxWidth: "900px",
             "@media (orientation: landscape)": {

@@ -1,5 +1,5 @@
 import { React, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import About from "./pages/About";
@@ -21,9 +21,52 @@ import LoginPrompt from "./components/LoginPrompt";
 import MyExerSights from "./pages/MyExerSights";
 import PushUpGamePage from "./utils/exercises/pushUpGame";
 import SquatGamePage from "./utils/exercises/squatGame";
+import RehabPlan from "./pages/RehabPlan";
+import TherapistLogin from "./pages/TherapistLogin";
+import TherapistDashboard from "./pages/TherapistDashboard";
+import BookSession from "./pages/BookSession";
+import SessionRoom from "./pages/SessionRoom";
 
 /* ✅ ADD THIS IMPORT (ONLY NEW IMPORT) */
 import PhysioChatbot from "./components/PhysioChatbot";
+
+function AppContent({ darkMode, toggleDarkMode }) {
+  const location = useLocation();
+  const isTherapistRoute = location.pathname.startsWith("/therapist");
+  const isSessionRoute = location.pathname.startsWith("/session");
+  const hideNav = isTherapistRoute || isSessionRoute;
+
+  return (
+    <>
+      <PageViewTracker />
+      {!hideNav && <LoginPrompt />}
+      {!hideNav && <Menubar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />}
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/catalog" element={<Catalog />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/squat" element={<SquatPage />} />
+        <Route path="/exercise" element={<ExercisePage />} />
+        <Route path="/program" element={<Program />} />
+        <Route path="/programOverlay" element={<ProgramOverlay />} />
+        <Route path="/myExerSights" element={<MyExerSights />} />
+        <Route path="/pushUpGame" element={<PushUpGamePage />} />
+        <Route path="/squatGame" element={<SquatGamePage />} />
+        <Route path="/ai-analysis" element={<AIAnalysis />} />
+        <Route path="/rehab-plan" element={<RehabPlan />} />
+        <Route path="/book-session" element={<BookSession />} />
+        <Route path="/session/:roomId" element={<SessionRoom />} />
+        <Route path="/therapist/login" element={<TherapistLogin />} />
+        <Route path="/therapist/dashboard" element={<TherapistDashboard />} />
+      </Routes>
+
+      {!hideNav && <PhysioChatbot />}
+    </>
+  );
+}
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -46,7 +89,7 @@ function App() {
       mode: darkMode ? "dark" : "light",
       primary: {
         main: darkMode ? indigo[500] : orange[700],
-        contrastText: darkMode ? "white" : "black",
+        contrastText: darkMode ? "#ffffff" : "#000000",
       },
       secondary: {
         main: darkMode ? indigo[500] : orange[700],
@@ -194,28 +237,7 @@ function App() {
       <Toaster position="top-right" containerStyle={{ top: 80 }} />
 
       <Router>
-        <PageViewTracker />
-        <LoginPrompt />
-        <Menubar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/catalog" element={<Catalog />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/squat" element={<SquatPage />} />
-          <Route path="/exercise" element={<ExercisePage />} />
-          <Route path="/program" element={<Program />} />
-          <Route path="/programOverlay" element={<ProgramOverlay />} />
-          <Route path="/myExerSights" element={<MyExerSights />} />
-          <Route path="/pushUpGame" element={<PushUpGamePage />} />
-          <Route path="/squatGame" element={<SquatGamePage />} />
-          <Route path="/ai-analysis" element={<AIAnalysis />} />
-        </Routes>
-
-        {/* 🤖 GLOBAL PHYSIO CHATBOT (ADDED ONCE) */}
-        <PhysioChatbot />
+        <AppContent darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       </Router>
     </ThemeProvider>
   );

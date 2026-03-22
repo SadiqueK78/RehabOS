@@ -1,0 +1,71 @@
+.therapist-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+.therapist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.therapist-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+.plan-card {
+  border-radius: 16px !important;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.user-card {
+  border-radius: 16px !important;
+  cursor: pointer;
+  border: 1px solid rgba(150, 150, 150, 0.15);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.user-card:hover {
+  border-color: #6366f1;
+}
+
+.user-card.selected {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+@media (max-width: 768px) {
+  .therapist-dashboard {
+    padding: 1rem;
+  }
+  .plans-grid,
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+}

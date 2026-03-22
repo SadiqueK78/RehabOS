@@ -32,12 +32,12 @@ function GameFeedbackPanel({
       {/* Top row: scores */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" color="white">
+          <Typography variant="h6" color="#ffffff">
             Left Score: {leftRepCount}
           </Typography>
         </Box>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" color="white">
+          <Typography variant="h6" color="#ffffff">
             Right Score: {rightRepCount}
           </Typography>
         </Box>

@@ -48,7 +48,7 @@ function ExercisePage({ exerciseName: propExerciseName }) {
   const [error, setError] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [repCount, setRepCount] = useState(0);
-  const [color, setColor] = useState("white");
+  const [color, setColor] = useState("#ffffff");
   const [jointAngles, setJointAngles] = useState({});
   const [angleView, setAngleView] = useState(true);
   const [targetAngles, setTargetAngles] = useState({});
@@ -211,6 +211,7 @@ function ExercisePage({ exerciseName: propExerciseName }) {
       handleReset={handleReset}
       auth={auth}
       isAuth={isAuth}
+      instructionsVideo={instructionsVideo}
     />
   );
 }

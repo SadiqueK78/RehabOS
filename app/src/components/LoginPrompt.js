@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Modal, Typography, Button } from "@mui/material";
+import { Box, Modal, Typography, Button, Divider } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { auth } from "../firebaseConfig";
 import { handleLogin } from "../utils/helpers/HandleLogin";
 import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const initializeSeenPrompt = () => {
   const hasSeenPrompt = localStorage.getItem("hasSeenLoginPrompt") === "true";
@@ -23,6 +25,7 @@ const initializeSeenPrompt = () => {
 };
 
 const LoginPrompt = () => {
+  const navigate = useNavigate();
   const [promptOpen, setPromptOpen] = useState(false);
   const [seenPrompt, setSeenPrompt] = useState(initializeSeenPrompt());
 
@@ -77,7 +80,7 @@ const LoginPrompt = () => {
           p: 4,
         }}>
         <Typography variant="h4" sx={{ textAlign: "center", mb: "0.5rem" }}>
-          Welcome to ExerSights!
+          Welcome to RehabOS!
         </Typography>
         <Typography variant="body1" sx={{ textAlign: "center", mb: "1rem" }}>
           Sign in to access all features and personalize your experience!
@@ -94,6 +97,16 @@ const LoginPrompt = () => {
         </Button>
         <Button variant="text" onClick={handleClose} sx={{ width: "15rem" }}>
           Maybe Later
+        </Button>
+        <Divider sx={{ width: "100%", my: 1.5 }} />
+        <Button
+          variant="text"
+          size="small"
+          startIcon={<LocalHospitalIcon />}
+          onClick={() => { handleClose(); navigate("/therapist/login"); }}
+          sx={{ textTransform: "none", color: "text.secondary", fontSize: "0.8rem" }}
+        >
+          Are you a Physiotherapist? Sign in here
         </Button>
       </Box>
     </Modal>
