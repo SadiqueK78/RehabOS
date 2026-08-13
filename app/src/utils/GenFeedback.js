@@ -3,6 +3,51 @@ import { playSoundCorrectRep, playText } from './helpers/Audio';
 import { calculateAngle } from './helpers/Angles';
 
 let repCount = 0;
+const lastMotionSignatureByExercise = new Map();
+
+const ANGLE_DELTA_THRESHOLD = 1;
+const POSITION_DELTA_THRESHOLD = 0.01;
+
+const getExerciseKey = (exerInfo) => exerInfo?.title || "default-exercise";
+
+const buildMotionSignature = (jointData) => {
+    const signature = {};
+    for (const [key, value] of Object.entries(jointData)) {
+        if (value && typeof value === "object") {
+            signature[key] = {
+                x: Number(value.x?.toFixed?.(3) ?? value.x ?? 0),
+                y: Number(value.y?.toFixed?.(3) ?? value.y ?? 0),
+                z: Number(value.z?.toFixed?.(3) ?? value.z ?? 0),
+            };
+        } else {
+            signature[key] = Number(Number(value).toFixed(1));
+        }
+    }
+    return signature;
+};
+
+const hasMeaningfulMotion = (prevSignature, nextSignature) => {
+    if (!prevSignature) return false;
+
+    for (const key of Object.keys(nextSignature)) {
+        const prevValue = prevSignature[key];
+        const nextValue = nextSignature[key];
+
+        if (typeof nextValue === "object" && nextValue !== null) {
+            const prevObj = prevValue || {};
+            const xDelta = Math.abs((prevObj.x || 0) - (nextValue.x || 0));
+            const yDelta = Math.abs((prevObj.y || 0) - (nextValue.y || 0));
+            const zDelta = Math.abs((prevObj.z || 0) - (nextValue.z || 0));
+            if (xDelta > POSITION_DELTA_THRESHOLD || yDelta > POSITION_DELTA_THRESHOLD || zDelta > POSITION_DELTA_THRESHOLD) {
+                return true;
+            }
+        } else if (Math.abs((prevValue || 0) - (nextValue || 0)) > ANGLE_DELTA_THRESHOLD) {
+            return true;
+        }
+    }
+
+    return false;
+};
 
 /**
  * Generalized method to evaluate exercise state transitions based on joint angles and visibility.
@@ -90,6 +135,33 @@ export const genCheck = (
     // Determine which side is closer to camera, left or right
     const closerSide = getCloserSide(leftJointLandmarks, rightJointLandmarks);
 
+    // Gate transitions on actual landmark movement so a static final pose does not count as a rep.
+    const exerciseKey = getExerciseKey(exerInfo);
+    const motionSignature = buildMotionSignature(jointData);
+    const previousSignature = lastMotionSignatureByExercise.get(exerciseKey);
+    const hasMotion = hasMeaningfulMotion(previousSignature, motionSignature);
+    lastMotionSignatureByExercise.set(exerciseKey, motionSignature);
+
+    if (!hasMotion) {
+        onFeedbackUpdate(exerInfo.states[currState].feedback);
+        if (exerInfo.states[currState].color) {
+            setColor(exerInfo.states[currState].color);
+        }
+
+        // Still update angle handlers so the UI remains live, but do not advance the FSM.
+        for (const [angleName, updateFunc] of Object.entries(angleHandlers)) {
+            let fullAngleName = `${closerSide}${angleName}`;
+            if (angleName.includes("left") || angleName.includes("right")) {
+                fullAngleName = `${angleName}`;
+            }
+            if (jointData[fullAngleName] !== undefined) {
+                updateFunc(jointData[fullAngleName]);
+            }
+        }
+
+        return currState;
+    }
+
     // Determine transition
     const transitionType = getTransitionType(jointData, closerSide);
 
@@ -161,6 +233,10 @@ function getCloserSide(leftLandmarks = [], rightLandmarks = []) {
  */
 export const resetRepCount = (val) => {
     repCount = val;
+};
+
+export const resetExerciseMotionTracking = (exerciseKey) => {
+    lastMotionSignatureByExercise.delete(exerciseKey || "default-exercise");
 };
 
 /**

@@ -55,6 +55,10 @@ export const pushUpInfo = {
 
 let currState;
 
+export const resetPushUpState = () => {
+    currState = undefined;
+};
+
 /**
  * Determines the type of transition based on push-up posture and arm movement.
  *

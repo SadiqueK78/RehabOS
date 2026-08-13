@@ -4,7 +4,7 @@ import HelpModal from "../../components/HelpModal";
 import SettingsModal from "../../components/SettingsModal";
 import FeedbackPanel from "../../components/FeedbackPanel";
 import ExerciseBox from "../../components/ExerciseBox";
-import { resetRepCount } from "../../utils/GenFeedback";
+import { resetRepCount, resetExerciseMotionTracking } from "../../utils/GenFeedback";
 import { loadExerciseData } from "./ExercisePageData";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import toast from "react-hot-toast";
@@ -128,6 +128,12 @@ function ExercisePage({ exerciseName: propExerciseName }) {
       });
   }, [exerciseName]);
 
+  useEffect(() => {
+    return () => {
+      resetExerciseMotionTracking(exerciseData?.fsm?.title || exerciseName);
+    };
+  }, [exerciseData, exerciseName]);
+
   if (loading) {
     return <div>Loading exercise...</div>;
   }
@@ -165,6 +171,7 @@ function ExercisePage({ exerciseName: propExerciseName }) {
   const handleReset = () => {
     setRepCount(0);
     resetRepCount(0);
+    resetExerciseMotionTracking(fsm.title ? fsm.title : exerciseName);
   };
 
   const feedbackPanel = (
