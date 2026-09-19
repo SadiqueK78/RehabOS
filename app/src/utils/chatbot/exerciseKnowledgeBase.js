@@ -1,5 +1,5 @@
 export const injuryExerciseMap = {
-  "neck pain": ["shoulderRolls", "shoulderPress"],
+  "neck pain": ["shoulderRolls", "shoulderPress", "neckTilt"],
   "shoulder pain": ["shoulderRolls", "shoulderPress"],
   "shoulder stiffness": ["shoulderRolls"],
   "lower back pain": ["bridge", "deadBug"],
@@ -10,7 +10,7 @@ export const injuryExerciseMap = {
 };
 
 export const muscleExerciseMap = {
-  "neck": ["shoulderRolls"],
+  "neck": ["shoulderRolls", "neckTilt"],
   "shoulders": ["shoulderRolls", "shoulderPress"],
   "core": ["plank", "deadBug"],
   "legs": ["legRaise", "squat", "lunge"],

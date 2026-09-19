@@ -18,6 +18,9 @@ export const instructionsTextStandingObliqueCrunch = content.instructions.standi
 export const instructionsTextTreePose = content.instructions.treePose;
 export const instructionsTextShoulderPress = content.instructions.shoulderPress;
 export const instructionsTextShoulderRolls =content.instructions.shoulderRolls;
+export const instructionsTextSeatedKneeExtension = content.instructions.seatedKneeExtension;
+export const instructionsTextCalfRaise = content.instructions.calfRaise;
+export const instructionsTextNeckTilt = content.instructions.neckTilt;
 
 //game
 export const instructionsTextPushupGame = content.instructions.pushupGame;
@@ -41,6 +44,9 @@ export const instructionsVideoStandingObliqueCrunch =
 export const instructionsVideoTreePose = content.instructionVideos.treePose;
 export const instructionsVideoShoulderPress = content.instructionVideos.shoulderPress;
 export const instructionsVideoShoulderRolls = content.instructionVideos.shoulderRolls;
+export const instructionsVideoSeatedKneeExtension = content.instructionVideos.seatedKneeExtension;
+export const instructionsVideoCalfRaise = content.instructionVideos.calfRaise;
+export const instructionsVideoNeckTilt = content.instructionVideos.neckTilt;
 
 //game
 export const instructionsVideoSquatGame = content.instructionVideos.squatGame;

@@ -11,7 +11,13 @@ import { logEvent } from "firebase/analytics";
 import { analytics } from "../firebaseConfig";
 
 const exerciseImages = Object.fromEntries(
-  Object.keys(catalogText).map((key) => [key, require(`../assets/exercise-cards/${key}.png`)])
+  Object.keys(catalogText).map((key) => {
+    try {
+      return [key, require(`../assets/exercise-cards/${key}.png`)];
+    } catch (e) {
+      return [key, null];
+    }
+  })
 );
 
 /**

@@ -2,7 +2,12 @@ export const loadExerciseData = async (exerciseName) => {
     try {
         const module = await import(`../../utils/exercises/${exerciseName.charAt(0).toUpperCase() + exerciseName.slice(1)}`);
         const contentModule = await import(`../../assets/content`);
-        const imageModule = await import(`../../assets/instructions/${exerciseName}Help.png`);
+        let imageModule = { default: null };
+        try {
+            imageModule = await import(`../../assets/instructions/${exerciseName}Help.png`);
+        } catch (e) {
+            console.warn(`Image for ${exerciseName} not found, falling back to null.`);
+        }
 
         return {
             fsm: module[`${exerciseName}Info`],
