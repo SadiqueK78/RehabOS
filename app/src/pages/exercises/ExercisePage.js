@@ -219,6 +219,7 @@ function ExercisePage({ exerciseName: propExerciseName }) {
       auth={auth}
       isAuth={isAuth}
       instructionsVideo={instructionsVideo}
+      exerciseKey={exerciseName}
     />
   );
 }

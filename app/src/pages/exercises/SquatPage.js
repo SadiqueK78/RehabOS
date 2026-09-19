@@ -101,6 +101,7 @@ function SquatPage() {
       color={color}
       repCount={repCount}
       instructionsVideo={instructionsVideoSquat}
+      exerciseKey="squat"
     />
   );
 }

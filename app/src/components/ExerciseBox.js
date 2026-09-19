@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import {
   Box,
   Typography,
@@ -17,9 +17,16 @@ import OverlayBox from "./CounterGraphic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import CloseIcon from "@mui/icons-material/Close";
+import AccessibilityNewIcon from "@mui/icons-material/AccessibilityNew";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { unlockAudio } from "../utils/helpers/Audio";
+import { hasMotion } from "../utils/avatar/exerciseMotions";
+import { t as coachT } from "../utils/avatar/coachI18n";
+import useCoachLang from "../utils/avatar/useCoachLang";
+
+// three.js is large, so the 3D coach is only downloaded on pages that show it.
+const AvatarCoach = lazy(() => import("./AvatarCoach"));
 
 const COLOR_MAP = {
   white: "#ffffff",
@@ -47,6 +54,7 @@ const toHex = (c) => COLOR_MAP[c] || c || "#ffffff";
  * @param {Function} setPlayFeedback - Function to toggle feedback state
  * @param {boolean} showSummary - Whether to show exercise summary
  * @param {Function} setShowSummary - Function to toggle summary display
+ * @param {string} exerciseKey - Exercise identifier used to pick the 3D coach animation
  * @returns {JSX.Element} The exercise interface with video feed and controls
  */
 function ExerciseBox({
@@ -64,6 +72,7 @@ function ExerciseBox({
   auth,
   isAuth,
   instructionsVideo,
+  exerciseKey,
 }) {
   const [showTutorial, setShowTutorial] = useState(!!instructionsVideo);
   const [useVideo, setUseVideo] = useState(false);
@@ -77,6 +86,10 @@ function ExerciseBox({
   const [stream, setStream] = useState(null);
   const [startTime, setStartTime] = useState(Date.now());
   const [endTime, setEndTime] = useState(Date.now());
+  const [showCoach, setShowCoach] = useState(localStorage.getItem("showCoach") !== "false");
+  const [coachSync, setCoachSync] = useState(0);
+  const coachAvailable = hasMotion(exerciseKey);
+  const [coachLang] = useCoachLang();
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
@@ -119,8 +132,16 @@ function ExerciseBox({
     if (!playFeedback) unlockAudio();
 
     setPlayFeedback(!playFeedback);
-    if (!playFeedback) setStartTime(Date.now());
+    if (!playFeedback) {
+      setStartTime(Date.now());
+      setCoachSync((n) => n + 1); // restart the coach so you both begin together
+    }
     else setEndTime(Date.now());
+  };
+
+  const toggleCoach = () => {
+    localStorage.setItem("showCoach", String(!showCoach));
+    setShowCoach(!showCoach);
   };
 
   const saveExerciseSummary = async (userEmail, exerciseSummary) => {
@@ -372,6 +393,12 @@ function ExerciseBox({
           height: "fit-content",
           gap: "2rem",
         }}>
+        {coachAvailable && showCoach && (
+          <Suspense fallback={null}>
+            <AvatarCoach exerciseKey={exerciseKey} syncKey={coachSync} />
+          </Suspense>
+        )}
+
         <Box
           sx={{
             border: `6px solid ${toHex(color)}`,
@@ -457,6 +484,12 @@ function ExerciseBox({
                 ))}
               </Select>
             </FormControl>
+            {coachAvailable && (
+              <Button variant={showCoach ? "outlined" : "contained"} onClick={toggleCoach}>
+                <AccessibilityNewIcon />
+                <Typography sx={{ mx: "5px" }}>{coachT(coachLang, showCoach ? "hide" : "show")}</Typography>
+              </Button>
+            )}
           </Box>
 
           {enhancedFeedbackPanel}
