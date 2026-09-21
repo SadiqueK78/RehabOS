@@ -26,9 +26,23 @@ import TherapistLogin from "./pages/TherapistLogin";
 import TherapistDashboard from "./pages/TherapistDashboard";
 import BookSession from "./pages/BookSession";
 import SessionRoom from "./pages/SessionRoom";
+import PatientDashboard from "./pages/PatientDashboard";
+import DigitalTwin from "./pages/DigitalTwin";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useDemo } from "./utils/patient/demoPatient";
 
 /* ✅ ADD THIS IMPORT (ONLY NEW IMPORT) */
 import PhysioChatbot from "./components/PhysioChatbot";
+
+/** Signed-in patients land on their dashboard; visitors see the public home page. */
+function HomeOrDashboard() {
+  const [user, setUser] = useState(undefined);
+  const demo = useDemo();
+  useEffect(() => onAuthStateChanged(getAuth(), setUser), []);
+  if (demo.active) return <PatientDashboard />;
+  if (user === undefined) return null;
+  return user ? <PatientDashboard /> : <Home />;
+}
 
 function AppContent({ darkMode, toggleDarkMode }) {
   const location = useLocation();
@@ -43,11 +57,13 @@ function AppContent({ darkMode, toggleDarkMode }) {
       {!hideNav && <Menubar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />}
 
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomeOrDashboard />} />
         <Route path="/catalog" element={<Catalog />} />
         <Route path="/about" element={<About />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<HomeOrDashboard />} />
+        <Route path="/dashboard" element={<PatientDashboard />} />
+        <Route path="/digital-twin" element={<DigitalTwin />} />
         <Route path="/squat" element={<SquatPage />} />
         <Route path="/exercise" element={<ExercisePage />} />
         <Route path="/program" element={<Program />} />

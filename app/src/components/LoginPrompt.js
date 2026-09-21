@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, Modal, Typography, Button, Divider } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
+import ElderlyIcon from "@mui/icons-material/Elderly";
+import { startDemo, isDemoActive } from "../utils/patient/demoPatient";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { auth } from "../firebaseConfig";
 import { handleLogin } from "../utils/helpers/HandleLogin";
@@ -41,7 +43,7 @@ const LoginPrompt = () => {
   // call this method whenever authentication changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+      if (user || isDemoActive()) {
         setPromptOpen(false);
       } else {
         // Only show prompt if user hasn't seen it in the last ten seconds
@@ -94,6 +96,17 @@ const LoginPrompt = () => {
             width: "18rem",
           }}>
           Sign in with Google
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<ElderlyIcon />}
+          onClick={() => {
+            handleClose();
+            startDemo();
+            navigate("/dashboard");
+          }}
+          sx={{ mb: "0.5rem", width: "18rem" }}>
+          Try demo patient
         </Button>
         <Button variant="text" onClick={handleClose} sx={{ width: "15rem" }}>
           Maybe Later

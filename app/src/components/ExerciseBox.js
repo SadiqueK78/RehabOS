@@ -18,10 +18,10 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import CloseIcon from "@mui/icons-material/Close";
 import AccessibilityNewIcon from "@mui/icons-material/AccessibilityNew";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
 import { unlockAudio } from "../utils/helpers/Audio";
 import { hasMotion } from "../utils/avatar/exerciseMotions";
+import { saveExerciseSession } from "../utils/patient/patientData";
+import { useDemo, DEMO_USER } from "../utils/patient/demoPatient";
 import { t as coachT } from "../utils/avatar/coachI18n";
 import useCoachLang from "../utils/avatar/useCoachLang";
 
@@ -55,6 +55,7 @@ const toHex = (c) => COLOR_MAP[c] || c || "#ffffff";
  * @param {boolean} showSummary - Whether to show exercise summary
  * @param {Function} setShowSummary - Function to toggle summary display
  * @param {string} exerciseKey - Exercise identifier used to pick the 3D coach animation
+ * @param {Function} getSessionStats - Returns extra session data to save, e.g. { rom } range of motion
  * @returns {JSX.Element} The exercise interface with video feed and controls
  */
 function ExerciseBox({
@@ -73,6 +74,7 @@ function ExerciseBox({
   isAuth,
   instructionsVideo,
   exerciseKey,
+  getSessionStats,
 }) {
   const [showTutorial, setShowTutorial] = useState(!!instructionsVideo);
   const [useVideo, setUseVideo] = useState(false);
@@ -90,6 +92,9 @@ function ExerciseBox({
   const [coachSync, setCoachSync] = useState(0);
   const coachAvailable = hasMotion(exerciseKey);
   const [coachLang] = useCoachLang();
+  const demo = useDemo();
+  // Signed-in patients and the demo patient can save sessions to their history.
+  const canSave = isAuth || demo.active;
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
@@ -146,8 +151,7 @@ function ExerciseBox({
 
   const saveExerciseSummary = async (userEmail, exerciseSummary) => {
     try {
-      const userRef = doc(db, "users", userEmail);
-      await setDoc(userRef, { exerciseHistory: exerciseSummary }, { merge: true });
+      await saveExerciseSession(userEmail, exerciseSummary);
     } catch (e) {
       console.log("Error saving programs to Firestore:", e);
     }
@@ -158,15 +162,17 @@ function ExerciseBox({
     handleReset();
 
     // if user is logged in, ask if they want to save the exercise summary
-    if (isAuth) {
+    if (canSave) {
       // add functionality to OPTIONALLY save reuslt to firebase
       let exerciseSummary = {};
       exerciseSummary[Date.now().toString()] = {
         exercise: title,
         repCount: repCount,
         duration: (endTime - startTime) / 1000,
+        ...(exerciseKey && { exerciseKey }),
+        ...(getSessionStats ? getSessionStats() : {}),
       };
-      saveExerciseSummary(auth.currentUser.email, exerciseSummary);
+      saveExerciseSummary(demo.active ? DEMO_USER.email : auth.currentUser.email, exerciseSummary);
     }
   };
 
@@ -329,7 +335,7 @@ function ExerciseBox({
           <Typography variant="h5" sx={{ mb: "0.5rem" }}>
             {repCount ? "Great work!" : "Hmm... try again..."}
           </Typography>
-          {isAuth ? (
+          {canSave ? (
             <Box>
               <Typography variant="body1" sx={{ mb: "0.5rem" }}>
                 Would you like to save this summary to your exercise history?

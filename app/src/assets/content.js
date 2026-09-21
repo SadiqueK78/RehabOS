@@ -22,6 +22,19 @@ export const instructionsTextSeatedKneeExtension = content.instructions.seatedKn
 export const instructionsTextCalfRaise = content.instructions.calfRaise;
 export const instructionsTextNeckTilt = content.instructions.neckTilt;
 
+// rehabilitation
+export const instructionsTextHeelSlide = content.instructions.heelSlide;
+export const instructionsTextAnklePumps = content.instructions.anklePumps;
+export const instructionsTextStraightLegRaise = content.instructions.straightLegRaise;
+export const instructionsTextSitToStand = content.instructions.sitToStand;
+export const instructionsTextSeatedMarching = content.instructions.seatedMarching;
+export const instructionsTextArmRaise = content.instructions.armRaise;
+export const instructionsTextSideArmRaise = content.instructions.sideArmRaise;
+export const instructionsTextWallPushUp = content.instructions.wallPushUp;
+export const instructionsTextHipAbduction = content.instructions.hipAbduction;
+export const instructionsTextSingleLegBalance = content.instructions.singleLegBalance;
+export const instructionsTextMiniSquat = content.instructions.miniSquat;
+
 //game
 export const instructionsTextPushupGame = content.instructions.pushupGame;
 export const instructionsTextSquatGame = content.instructions.squatGame;

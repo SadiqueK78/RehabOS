@@ -142,7 +142,8 @@ export const genCheck = (
     const hasMotion = hasMeaningfulMotion(previousSignature, motionSignature);
     lastMotionSignatureByExercise.set(exerciseKey, motionSignature);
 
-    if (!hasMotion) {
+    // Timed holds (e.g. balance) are meant to be still, so they opt out of the motion gate.
+    if (!hasMotion && !exerInfo.allowStatic) {
         onFeedbackUpdate(exerInfo.states[currState].feedback);
         if (exerInfo.states[currState].color) {
             setColor(exerInfo.states[currState].color);

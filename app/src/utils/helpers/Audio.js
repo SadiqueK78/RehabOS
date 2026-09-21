@@ -1,4 +1,5 @@
 import rep from '../../assets/correct.wav';
+import { sharedVoice } from '../avatar/coachSpeech';
 
 let voiceName = "Google US English";
 let selectedVoice = null;
@@ -95,12 +96,15 @@ const playText = (text) => {
         return;
     }
 
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = selectedVoice;
-
-    window.speechSynthesis.speak(utterance);
+    // Queued through the shared voice: form feedback and the coach's cues use the same speech
+    // engine, and cancelling here used to cut the coach off in the middle of a sentence.
+    sharedVoice().speak({
+        text,
+        voice: selectedVoice,
+        bcp47: selectedVoice?.lang || "en-US",
+        rate: 1,
+        source: "feedback",
+    });
 }
 
 export {

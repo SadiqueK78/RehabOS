@@ -20,6 +20,7 @@ import ElderlyIcon from "@mui/icons-material/Elderly";
 import PersonIcon from "@mui/icons-material/Person";
 import AvatarScene from "../utils/avatar/AvatarScene";
 import { LANGUAGES, cueText, speechLang, t } from "../utils/avatar/coachI18n";
+import { pickVoice, sharedVoice, speechRate, speechText } from "../utils/avatar/coachSpeech";
 import useCoachLang from "../utils/avatar/useCoachLang";
 import { AVATARS, avatarAvailable, getAvatar } from "../utils/avatar/avatars";
 
@@ -42,26 +43,26 @@ const writePref = (key, value) => {
   }
 };
 
+// Asked once and remembered. Each probe opens a real WebGL context, and a browser only allows a
+// handful at a time: probing on every render used to push the coach's own context out and leave
+// it restoring itself over and over.
+let webglSupport = null;
 const webglAvailable = () => {
+  if (webglSupport !== null) return webglSupport;
   try {
     const c = document.createElement("canvas");
-    return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+    const gl = window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"));
+    // Hand the probe's context straight back rather than waiting for the garbage collector.
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    webglSupport = !!gl;
   } catch {
-    return false;
+    webglSupport = false;
   }
+  return webglSupport;
 };
 
 /** Best installed voice for a BCP-47 language (e.g. "hi-IN"), or null if the device has none. */
-function findVoice(bcp47) {
-  const voices = window.speechSynthesis?.getVoices() || [];
-  const base = bcp47.split("-")[0];
-  return (
-    voices.find((v) => v.lang === bcp47 && /google|natural|online/i.test(v.name)) ||
-    voices.find((v) => v.lang === bcp47) ||
-    voices.find((v) => v.lang.replace("_", "-").toLowerCase().startsWith(base)) ||
-    null
-  );
-}
+const findVoice = (bcp47, prefer) => pickVoice(bcp47, window.speechSynthesis?.getVoices() || [], prefer);
 
 /**
  * AvatarCoach - a 3D human coach that performs the selected exercise with correct form,
@@ -82,7 +83,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
   const langRef = useRef(lang);
   const voiceRef = useRef(readPref("coachVoice", false));
 
-  const [status, setStatus] = useState(webglAvailable() ? "loading" : "unsupported");
+  const [status, setStatus] = useState(() => (webglAvailable() ? "loading" : "unsupported"));
   const [contextLost, setContextLost] = useState(false);
   const [cue, setCue] = useState(null);
   const [reps, setReps] = useState(0);
@@ -95,18 +96,25 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
   const [available, setAvailable] = useState(["adult"]);
   const avatarRef = useRef(avatarId);
 
+  // Shared with the exercise feedback voice, so the two take turns instead of cutting each other off.
+  const voiceQueue = useRef(sharedVoice());
+
   const speak = (cueRef) => {
     if (!voiceRef.current || !cueRef || !window.speechSynthesis) return;
     const bcp47 = speechLang(langRef.current);
     const v = findVoice(bcp47);
     setVoiceMissing(!v && langRef.current !== "en");
     if (!v && langRef.current !== "en") return; // an English voice would mangle Hindi text
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(cueText(langRef.current, cueRef).replace(/—/g, ","));
-    u.lang = bcp47;
-    if (v) u.voice = v;
-    u.rate = 0.95;
-    window.speechSynthesis.speak(u);
+    // Queued, not cancelled: the cue being spoken gets to finish its sentence.
+    voiceQueue.current.speak({
+      text: speechText(langRef.current, cueText(langRef.current, cueRef)),
+      bcp47,
+      voice: v,
+      // If the good voice is a streamed one and the connection drops, finish on the offline voice.
+      fallbackVoice: findVoice(bcp47, "local"),
+      rate: speechRate(langRef.current),
+      source: "coach",
+    });
   };
   const speakRef = useRef(speak);
   speakRef.current = speak;
@@ -114,6 +122,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
   // Create the 3D scene once; it is reused across exercise changes.
   useEffect(() => {
     if (status === "unsupported" || !mountRef.current) return undefined;
+    const voice = voiceQueue.current;
     const scene = new AvatarScene(mountRef.current, {
       modelUrl: `${process.env.PUBLIC_URL || ""}/models/coach.glb`,
       dark,
@@ -149,7 +158,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
     });
     return () => {
       cancelled = true;
-      window.speechSynthesis?.cancel();
+      voice.stop("coach");
       scene.dispose();
       sceneRef.current = null;
     };
@@ -174,7 +183,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
   // Voices load asynchronously in Chrome; re-check availability once they arrive.
   useEffect(() => {
     langRef.current = lang;
-    window.speechSynthesis?.cancel();
+    voiceQueue.current.stop("coach");
     const check = () => setVoiceMissing(voiceRef.current && lang !== "en" && !findVoice(speechLang(lang)));
     check();
     window.speechSynthesis?.addEventListener?.("voiceschanged", check);
@@ -199,7 +208,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
     const next = !playing;
     setPlaying(next);
     sceneRef.current?.setPlaying(next);
-    if (!next) window.speechSynthesis?.cancel();
+    if (!next) voiceQueue.current.stop("coach");
   };
 
   const changeSpeed = (_e, value) => {
@@ -222,7 +231,7 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
     voiceRef.current = next;
     writePref("coachVoice", next);
     if (next) speak(cue);
-    else window.speechSynthesis?.cancel();
+    else voiceQueue.current.stop("coach");
   };
 
   const border = dark ? "#2b2f3a" : "#d5d9e0";
@@ -386,4 +395,6 @@ function AvatarCoach({ exerciseKey, syncKey = 0 }) {
   );
 }
 
-export default AvatarCoach;
+// The exercise page re-renders on every tracked frame; the coach only cares about which exercise
+// it is showing, so it opts out of all that.
+export default React.memo(AvatarCoach);

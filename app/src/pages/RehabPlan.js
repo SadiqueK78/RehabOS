@@ -21,6 +21,7 @@ import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useDemo, updateDemoData } from "../utils/patient/demoPatient";
 import { db } from "../firebaseConfig";
 import { analyzeInjury, extractTextFromPDF } from "../utils/rehab/injuryAnalyzer";
 import toast from "react-hot-toast";
@@ -35,7 +36,15 @@ function RehabPlan() {
   const [saving, setSaving] = useState(false);
   const [existingPlan, setExistingPlan] = useState(null);
 
+  const demo = useDemo();
+
   useEffect(() => {
+    // The demo patient's plan lives in the local demo record.
+    if (demo.active) {
+      setIsAuth(true);
+      setExistingPlan(demo.data?.rehabPlan || null);
+      return undefined;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsAuth(true);
@@ -45,7 +54,8 @@ function RehabPlan() {
       }
     });
     return () => unsubscribe();
-  }, [auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth, demo.active]);
 
   const loadExistingPlan = async (email) => {
     try {
@@ -125,8 +135,12 @@ function RehabPlan() {
         createdAt: Date.now(),
         status: "pending",
       };
-      const userRef = doc(db, "users", auth.currentUser.email);
-      await setDoc(userRef, { rehabPlan: plan, displayName: auth.currentUser.displayName || auth.currentUser.email }, { merge: true });
+      if (demo.active) {
+        await updateDemoData((d) => ({ ...d, rehabPlan: plan }));
+      } else {
+        const userRef = doc(db, "users", auth.currentUser.email);
+        await setDoc(userRef, { rehabPlan: plan, displayName: auth.currentUser.displayName || auth.currentUser.email }, { merge: true });
+      }
       setExistingPlan(plan);
       toast.success("Plan submitted for physiotherapist review!");
     } catch (err) {
@@ -139,8 +153,12 @@ function RehabPlan() {
   const handleClearPlan = async () => {
     if (!isAuth) return;
     try {
-      const userRef = doc(db, "users", auth.currentUser.email);
-      await setDoc(userRef, { rehabPlan: null }, { merge: true });
+      if (demo.active) {
+        await updateDemoData((d) => ({ ...d, rehabPlan: null }));
+      } else {
+        const userRef = doc(db, "users", auth.currentUser.email);
+        await setDoc(userRef, { rehabPlan: null }, { merge: true });
+      }
       setExistingPlan(null);
       setResult(null);
       setInjuryText("");

@@ -59,6 +59,9 @@ function ExercisePage({ exerciseName: propExerciseName }) {
 
   const targetAnglesRef = useRef({});
   const playFeedbackRef = useRef(playFeedback);
+  // Smallest/largest value of each tracked angle this session (range of motion for the Digital Twin).
+  const sessionStatsRef = useRef({});
+  const lastAngleRef = useRef({});
 
   const auth = getAuth();
   const [isAuth, setIsAuth] = useState(false);
@@ -84,6 +87,10 @@ function ExercisePage({ exerciseName: propExerciseName }) {
     // update playFeedbackRef whenever playFeedback changes
     // playFeedback changed in ExerciseBox (user toggle)
     playFeedbackRef.current = playFeedback;
+    if (playFeedback) {
+      sessionStatsRef.current = {};
+      lastAngleRef.current = {};
+    }
 
     // for the summary, do not show before the first play feedback
     if (firstPlayFeedback) setFirstPlayFeedback(false);
@@ -144,8 +151,30 @@ function ExercisePage({ exerciseName: propExerciseName }) {
 
   const { fsm, checkFunction, helpImage, instructionsText, instructionsVideo } = exerciseData;
 
+  // A jump of more than 40° between frames is a detection glitch, not movement; skip it.
+  const recordRange = (param, value) => {
+    if (!Number.isFinite(value)) return;
+    const prev = lastAngleRef.current[param];
+    lastAngleRef.current[param] = value;
+    if (prev === undefined || Math.abs(value - prev) > 40) return;
+    const s = sessionStatsRef.current[param];
+    sessionStatsRef.current[param] = s ? { min: Math.min(s.min, value), max: Math.max(s.max, value) } : { min: value, max: value };
+  };
+
+  /** Range of motion to save with the session: { "Knee Angle": { min, max } }. */
+  const getSessionStats = () => {
+    const rom = {};
+    for (const [param, r] of Object.entries(sessionStatsRef.current)) {
+      rom[formatJointName(param)] = { min: Math.round(r.min), max: Math.round(r.max) };
+    }
+    return { rom };
+  };
+
   const setAngleFunctions = (fsm.angleSetters || []).reduce((acc, param) => {
-    acc[param] = (value) => setJointAngles((prev) => ({ ...prev, [param]: value }));
+    acc[param] = (value) => {
+      recordRange(param, value);
+      setJointAngles((prev) => ({ ...prev, [param]: value }));
+    };
     return acc;
   }, {});
 
@@ -220,6 +249,7 @@ function ExercisePage({ exerciseName: propExerciseName }) {
       isAuth={isAuth}
       instructionsVideo={instructionsVideo}
       exerciseKey={exerciseName}
+      getSessionStats={getSessionStats}
     />
   );
 }

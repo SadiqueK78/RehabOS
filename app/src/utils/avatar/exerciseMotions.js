@@ -719,6 +719,267 @@ export const MOTIONS = {
       return [...keys, ...otherSide(keys)];
     },
   },
+  // ---------------------------------------------------------------------------------------
+  // Rehabilitation exercises (gentle, home-based; shown at full range for every coach since
+  // their ranges are already the prescribed rehab targets).
+  // ---------------------------------------------------------------------------------------
+
+  heelSlide: {
+    seniorRange: 1,
+    view: { az: 80, el: 16 },
+    props: ["mat"],
+    opts: { ground: "auto" },
+    keys: () => {
+      const straight = SUPINE;
+      // Knee bends twice as much as the hip, which keeps the heel on the mat as it slides.
+      const slid = merge(SUPINE, { legL: { flex: 55, knee: 110, ankle: -5 } });
+      const keys = [
+        { pose: straight, move: 1.6, hold: 0.6, cue: "heelSlide.start" },
+        { pose: slid, move: 2.0, hold: 0.8, cue: ["heelSlide.slide", "left"], rep: true },
+      ];
+      return [...keys, ...otherSide(keys)];
+    },
+  },
+
+  anklePumps: {
+    seniorRange: 1,
+    view: { az: 70, el: 18, focus: undefined },
+    props: ["mat"],
+    opts: { ground: "auto" },
+    keys: () => {
+      const rest = merge(SUPINE, { legL: { ankle: -15 }, legR: { ankle: -15 } });
+      const toesUp = merge(rest, { legL: { ankle: 18 }, legR: { ankle: 18 } });
+      const toesDown = merge(rest, { legL: { ankle: -48 }, legR: { ankle: -48 } });
+      return [
+        { pose: rest, move: 1.0, hold: 0.4, cue: "anklePumps.start" },
+        { pose: toesUp, move: 0.9, hold: 0.5, cue: "anklePumps.up" },
+        { pose: toesDown, move: 1.1, hold: 0.5, cue: "anklePumps.down", rep: true },
+      ];
+    },
+  },
+
+  straightLegRaise: {
+    seniorRange: 1,
+    view: { az: 80, el: 14 },
+    props: ["mat"],
+    opts: { ground: "auto" },
+    keys: () => {
+      const start = merge(SUPINE, { legR: { flex: 55, knee: 110, flat: true } });
+      const raised = merge(start, { legL: { flex: 45, knee: 0, ankle: 5 } });
+      const keys = [
+        { pose: start, move: 1.6, hold: 0.6, cue: "straightLegRaise.start" },
+        { pose: raised, move: 1.8, hold: 1.2, cue: ["straightLegRaise.lift", "left"], rep: true },
+      ];
+      return [...keys, ...otherSide(keys)];
+    },
+  },
+
+  sitToStand: {
+    seniorRange: 1,
+    view: { az: 75, el: 8 },
+    props: ["chair"],
+    opts: {
+      ground: "auto",
+      contacts: ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"],
+      anchorXZ: ["LeftFoot", "RightFoot"],
+    },
+    keys: () => {
+      const arms = { flex: 30, abd: 14, elbow: 40, pron: 60 };
+      const seated = merge(STAND, {
+        spine: { flex: -2 },
+        legL: { flex: 88, abd: 6, knee: 92, flat: true },
+        legR: { flex: 88, abd: 6, knee: 92, flat: true },
+        armL: arms,
+        armR: arms,
+      });
+      // Nose over toes: the trunk tips forward while the thighs stay on the seat.
+      const lean = merge(seated, {
+        root: { pitch: 34 },
+        spine: { flex: 6 },
+        neck: { flex: -18 },
+        legL: { flex: 122 },
+        legR: { flex: 122 },
+        armL: { flex: 80, elbow: 15 },
+        armR: { flex: 80, elbow: 15 },
+      });
+      const stand = merge(STAND, { armL: { flex: 10, elbow: 15 }, armR: { flex: 10, elbow: 15 } });
+      return [
+        { pose: seated, move: 1.6, hold: 0.6, cue: "sitToStand.sit" },
+        { pose: lean, move: 1.0, hold: 0.2, cue: "sitToStand.lean" },
+        { pose: stand, move: 1.5, hold: 0.8, cue: "sitToStand.stand", rep: true },
+        { pose: lean, move: 1.6, hold: 0.1, cue: "sitToStand.down" },
+      ];
+    },
+  },
+
+  seatedMarching: {
+    seniorRange: 1,
+    view: { az: 70, el: 8 },
+    props: ["chair"],
+    opts: { ground: "auto", contacts: ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"], anchorXZ: ["Hips"] },
+    keys: () => {
+      const hold = { flex: 0, abd: 14, elbow: 12, pron: 30 };
+      const seated = merge(STAND, {
+        spine: { flex: -3 },
+        legL: { flex: 88, abd: 6, knee: 90, flat: true },
+        legR: { flex: 88, abd: 6, knee: 90, flat: true },
+        armL: hold,
+        armR: hold,
+      });
+      const lift = merge(seated, { legL: { flex: 116, knee: 95, flat: false, ankle: 0 } });
+      const keys = [
+        { pose: seated, move: 0.9, hold: 0.3, cue: "seatedMarching.sit" },
+        { pose: lift, move: 0.9, hold: 0.5, cue: ["seatedMarching.lift", "left"], rep: true },
+      ];
+      return [...keys, ...otherSide(keys)];
+    },
+  },
+
+  armRaise: {
+    seniorRange: 1,
+    view: { az: 65, el: 6 },
+    opts: { ground: "auto", anchorXZ: ["LeftFoot", "RightFoot"] },
+    keys: () => {
+      const down = merge(STAND, { armL: { flex: 4, abd: 6, elbow: 8, pron: 0 }, armR: { flex: 4, abd: 6, elbow: 8, pron: 0 } });
+      const up = merge(down, { armL: { flex: 160, abd: 8, elbow: 6 }, armR: { flex: 160, abd: 8, elbow: 6 } });
+      return [
+        { pose: down, move: 1.8, hold: 0.6, cue: "armRaise.down" },
+        { pose: up, move: 2.0, hold: 0.8, cue: "armRaise.up", rep: true },
+      ];
+    },
+  },
+
+  sideArmRaise: {
+    seniorRange: 1,
+    view: { az: 12, el: 6 },
+    opts: { ground: "auto", anchorXZ: ["LeftFoot", "RightFoot"] },
+    keys: () => {
+      const down = merge(STAND, { armL: { flex: 2, abd: 8, elbow: 8, pron: 0 }, armR: { flex: 2, abd: 8, elbow: 8, pron: 0 } });
+      const up = merge(down, { armL: { abd: 88, elbow: 5, pron: 80 }, armR: { abd: 88, elbow: 5, pron: 80 } });
+      return [
+        { pose: down, move: 1.8, hold: 0.6, cue: "armRaise.down" },
+        { pose: up, move: 1.8, hold: 0.8, cue: "sideArmRaise.up", rep: true },
+      ];
+    },
+  },
+
+  wallPushUp: {
+    seniorRange: 1,
+    // Camera behind the shoulder, so the wall in front of the coach is on the far side.
+    view: { az: 112, el: 10 },
+    props: ["wallFront"],
+    opts: { ground: "auto", contacts: ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"], anchorXZ: ["LeftFoot", "RightFoot"] },
+    keys: (ctx) => {
+      const { m } = ctx;
+      const body = (pitch) =>
+        merge(STAND, {
+          root: { pitch },
+          neck: { flex: -pitch * 0.6 },
+          legL: { abd: 4, knee: 0, ankle: pitch * 0.8, flat: true },
+          legR: { abd: 4, knee: 0, ankle: pitch * 0.8, flat: true },
+          armL: { flex: 90 - pitch, abd: 12, elbow: 4 },
+          armR: { flex: 90 - pitch, abd: 12, elbow: 4 },
+          fingers: 0.1,
+        });
+      // Hands flat on the wall at shoulder height, arms nearly straight at the start.
+      const top = body(10);
+      const opts = MOTIONS.wallPushUp.opts;
+      const sL = ctx.bonePos(top, opts, "LeftArm");
+      const sR = ctx.bonePos(top, opts, "RightArm");
+      const handZ = sL[2] + m.armReach * 0.94;
+      ctx.wallFront = { z: handZ + m.hand.palm + 0.004 };
+      const hand = (s, sp) => ({
+        ik: [sp[0] + s * 0.06, sp[1] - 0.04, handZ],
+        pole: [s * 0.8, -1, -0.2],
+        palm: { dir: [0, 1, 0], normal: [0, 0, 1] },
+        fingers: 0.1,
+      });
+      const onWall = (pose) => merge(pose, { armL: hand(1, sL), armR: hand(-1, sR) });
+      return [
+        { pose: onWall(top), move: 1.4, hold: 0.5, cue: "wallPushUp.start" },
+        { pose: onWall(merge(body(24), { neck: { flex: -10 } })), move: 1.6, hold: 0.4, cue: "wallPushUp.down" },
+        { pose: onWall(top), move: 1.4, hold: 0.3, cue: "wallPushUp.up", rep: true },
+      ];
+    },
+  },
+
+  hipAbduction: {
+    seniorRange: 1,
+    view: { az: 12, el: 6 },
+    opts: { ground: "auto" },
+    keys: () => {
+      const arms = { flex: 6, abd: 22, elbow: 18, pron: 20 };
+      const stand = merge(STAND, { anchor: ["RightFoot"], armL: arms, armR: arms });
+      const shift = merge(stand, { root: { x: -0.035 }, legR: { abd: 0 }, legL: { abd: 5 } });
+      const lift = merge(shift, { spine: { side: -3 }, legL: { abd: 28, flex: 2, knee: 4, flat: false, ankle: 0 } });
+      const keys = [
+        { pose: stand, move: 1.2, hold: 0.3, cue: ["hipAbduction.stand", "right"] },
+        { pose: shift, move: 0.6, hold: 0, cue: ["hipAbduction.stand", "right"] },
+        { pose: lift, move: 1.4, hold: 0.6, cue: ["hipAbduction.lift", "left"], rep: true },
+        { pose: shift, move: 1.4, hold: 0.2, cue: ["hipAbduction.stand", "right"] },
+      ];
+      return [...keys, ...otherSide(keys)];
+    },
+  },
+
+  singleLegBalance: {
+    seniorRange: 1,
+    view: { az: 30, el: 6 },
+    opts: { ground: "auto" },
+    keys: () => {
+      const arms = { flex: 8, abd: 26, elbow: 22, pron: 40 };
+      const stand = merge(STAND, { anchor: ["RightFoot"], armL: arms, armR: arms });
+      const shift = merge(stand, { root: { x: -0.04 }, legR: { abd: 0 }, legL: { abd: 5 } });
+      const lift = merge(shift, { legL: { flex: 28, knee: 70, flat: false, ankle: -15 }, armL: { abd: 32 }, armR: { abd: 32 } });
+      const keys = [
+        { pose: stand, move: 1.2, hold: 0.5, cue: "singleLegBalance.stand" },
+        { pose: shift, move: 0.7, hold: 0, cue: "singleLegBalance.stand" },
+        { pose: lift, move: 1.0, hold: 4.0, cue: ["singleLegBalance.lift", "left"], rep: true },
+        { pose: shift, move: 1.1, hold: 0.3, cue: "singleLegBalance.down" },
+      ];
+      return [...keys, ...otherSide(keys)];
+    },
+  },
+
+  miniSquat: {
+    seniorRange: 1,
+    view: { az: 62, el: 6 },
+    opts: { ground: "none" },
+    keys: () => {
+      const stand = merge(STAND_IK, { legL: { ball: [0.05, 0, 0], toeOut: 10 }, legR: { ball: [0.05, 0, 0], toeOut: 10 } });
+      const bottom = merge(stand, {
+        root: { y: -0.15, z: -0.07, pitch: 16 },
+        neck: { flex: -10 },
+        legL: { kneeOut: 4 },
+        legR: { kneeOut: 4 },
+        armL: { flex: 75, abd: 10, elbow: 8, pron: 60 },
+        armR: { flex: 75, abd: 10, elbow: 8, pron: 60 },
+      });
+      return [
+        { pose: stand, move: 1.4, hold: 0.6, cue: "miniSquat.stand" },
+        { pose: bottom, move: 1.6, hold: 0.5, cue: "miniSquat.down" },
+        { pose: stand, move: 1.4, hold: 0.2, cue: "miniSquat.up", rep: true },
+      ];
+    },
+  },
+};
+
+/** Calm standing idle for the Digital Twin: breathing, a slow weight shift and relaxed arms. */
+MOTIONS.idle = {
+  view: { az: 18, el: 6 },
+  opts: { ground: "auto", anchorXZ: ["LeftFoot", "RightFoot"] },
+  keys: () => {
+    const arms = { flex: 3, abd: 8, elbow: 14, pron: 15 };
+    const a = merge(STAND, { armL: arms, armR: arms, neck: { flex: 2 } });
+    const b = merge(a, { root: { x: 0.012, roll: 0.6 }, spine: { side: -0.8 }, neck: { twist: 6, flex: 0 }, armL: { abd: 9 } });
+    const c = merge(a, { root: { x: -0.012, roll: -0.6 }, spine: { side: 0.8 }, neck: { twist: -5 }, armR: { abd: 9 } });
+    return [
+      { pose: a, move: 2.2, hold: 1.2 },
+      { pose: b, move: 2.6, hold: 1.4 },
+      { pose: a, move: 2.4, hold: 0.8 },
+      { pose: c, move: 2.6, hold: 1.4 },
+    ];
+  },
 };
 
 MOTIONS.pushUpGame = MOTIONS.pushUp;

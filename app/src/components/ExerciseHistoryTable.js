@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import Delete from "@mui/icons-material/DeleteForever";
 import { doc, updateDoc, deleteField } from "firebase/firestore";
+import { isDemoActive, updateDemoData } from "../utils/patient/demoPatient";
 import { auth, db } from "../firebaseConfig";
 
 const ExerciseHistoryTable = ({ exerciseHistory, setExerciseHistory }) => {
@@ -37,6 +38,15 @@ const ExerciseHistoryTable = ({ exerciseHistory, setExerciseHistory }) => {
   }, [exerciseHistory, order, orderBy]);
 
   const deleteExerciseEntry = async (timestamp) => {
+    if (isDemoActive()) {
+      await updateDemoData((d) => {
+        const exerciseHistory = { ...d.exerciseHistory };
+        delete exerciseHistory[String(timestamp)];
+        return { ...d, exerciseHistory };
+      });
+      setExerciseHistory((prev) => prev.filter((entry) => entry.timestamp !== timestamp));
+      return;
+    }
     const user = auth.currentUser;
 
     if (!user || !user.email) {

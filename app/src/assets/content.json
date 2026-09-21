@@ -1,5 +1,16 @@
 {
   "catalog": {
+    "heelSlide": "Rehab • Knee: gently restores knee bending after surgery or injury, lying on your back.",
+    "anklePumps": "Rehab • Ankle & circulation: keeps blood moving and ankles mobile, ideal after surgery or long bed rest.",
+    "straightLegRaise": "Rehab • Knee & thigh: strengthens the quadriceps without bending the knee — a key early knee-rehab exercise.",
+    "sitToStand": "Rehab • Legs & independence: practises getting up from a chair safely, building leg strength for daily life.",
+    "seatedMarching": "Rehab • Hips & balance: a gentle seated exercise to strengthen hip muscles and improve walking.",
+    "armRaise": "Rehab • Shoulder: restores the ability to lift the arms forward and overhead after shoulder injury or stiffness.",
+    "sideArmRaise": "Rehab • Shoulder: strengthens the shoulder to lift the arms out to the side, up to shoulder height.",
+    "wallPushUp": "Rehab • Arms & chest: a safe, standing version of the push-up that builds upper-body strength.",
+    "hipAbduction": "Rehab • Hip: strengthens the outer hip muscles that keep you steady when walking.",
+    "singleLegBalance": "Rehab • Balance & fall prevention: builds steadiness on one leg, with a chair nearby for support.",
+    "miniSquat": "Rehab • Knees & thighs: a small, safe squat to build leg strength without deep knee bending.",
     "squat": "Strengthens the legs, glutes, and core, improving flexibility and balance.",
     "pushUp": "Builds upper body strength specifically in your chest and triceps.",
     "deadBug": "A technique for building strength in your back and core.",
@@ -43,7 +54,18 @@
     "shoulderRolls": "Stand straight with your arms relaxed at your sides. Slowly lift your shoulders upward, roll them backward, lower them down, and repeat in a smooth circular motion. Keep your neck relaxed and breathe normally.",
     "seatedKneeExtension": "Please position yourself so that your camera is facing the SIDE of your body while you are seated in a chair. Ensure that your entire body is in frame and the camera is straight and not tilted.",
     "calfRaise": "Please position yourself so that your camera is facing the SIDE of your body. Ensure that your entire body is in frame and the camera is straight and not tilted.",
-    "neckTilt": "Sit or stand up straight. Look forward and tilt your head to one side, bringing your ear toward your shoulder. Return to center and repeat on the other side."
+    "neckTilt": "Sit or stand up straight. Look forward and tilt your head to one side, bringing your ear toward your shoulder. Return to center and repeat on the other side.",
+    "heelSlide": "Lie on your back on a firm surface with both legs straight. Slowly slide one heel toward your buttocks, bending the knee as far as is comfortable, then slide it back out. Keep the heel on the surface throughout. Position your camera to face the SIDE of your body so both legs are in view.",
+    "anklePumps": "Lie on your back (or sit) with your legs straight. Pull your toes up toward you as far as is comfortable, then point them away. Move slowly and rhythmically. Position your camera to face the SIDE of your body with your feet clearly in view.",
+    "straightLegRaise": "Lie on your back with one knee bent and that foot flat. Tighten the thigh of the straight leg and lift it to the height of the bent knee, hold briefly, then lower slowly. Keep the lifted knee straight. Position your camera to face the SIDE of your body.",
+    "sitToStand": "Sit near the front of a sturdy chair with your feet flat and hip-width apart. Lean forward so your nose is over your toes, push through your heels and stand up fully. Then reach back and sit down slowly. Use your hands on the chair if you need to. Position your camera to face the SIDE of your body.",
+    "seatedMarching": "Sit tall on a sturdy chair and hold the sides of the seat. Lift one knee toward the ceiling, lower it, then lift the other, like marching slowly. Keep your back upright. Position your camera to face the SIDE of your body.",
+    "armRaise": "Stand or sit tall with your arms by your sides. Keeping your elbows straight, raise your arms forward and up as high as is comfortable, then lower them slowly. Do not shrug your shoulders. Position your camera to face the SIDE of your body.",
+    "sideArmRaise": "Stand tall with your arms by your sides, palms facing in. Lift your arms out to the sides up to shoulder height, then lower them slowly. Stop if you feel pain. Position your camera to face the FRONT of your body.",
+    "wallPushUp": "Stand about an arm's length from a wall and place your hands flat on it at shoulder height. Keeping your body straight, bend your elbows to bring your chest toward the wall, then push back to straight arms. Position your camera to face the SIDE of your body.",
+    "hipAbduction": "Stand tall, holding a chair or counter for support. Keeping your body upright and toes pointing forward, lift one leg out to the side, then lower it slowly. Repeat on the other side. Position your camera to face the FRONT of your body.",
+    "singleLegBalance": "Stand beside a sturdy chair and hold it lightly if needed. Shift your weight onto one leg and lift the other foot off the floor. Hold steady for the target time while breathing normally, then lower the foot. Repeat on the other leg. Position your camera to face the FRONT of your body so both feet are visible.",
+    "miniSquat": "Stand with your feet hip-width apart, holding a chair in front of you if needed. Push your hips back and bend your knees slightly, as if starting to sit, then stand back up. Keep your knees in line with your toes. Position your camera to face the SIDE of your body."
   },
   "instructionVideos": {
     "squat": "https://www.youtube.com/embed/4KmY44Xsg2w",

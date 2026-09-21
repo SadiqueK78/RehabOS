@@ -4,12 +4,24 @@ import { doc, getDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebaseConfig";
 import ExerciseHistoryTable from "../components/ExerciseHistoryTable";
+import { useDemo } from "../utils/patient/demoPatient";
 
 const MyExerSights = () => {
   const auth = getAuth();
 
   const [isAuth, setIsAuth] = useState(false);
   const [exerciseHistory, setExerciseHistory] = useState([]);
+  const demo = useDemo();
+
+  // The demo patient's history comes from the local demo record.
+  useEffect(() => {
+    if (!demo.active) return;
+    setExerciseHistory(
+      Object.entries(demo.data?.exerciseHistory || {})
+        .map(([timestamp, data]) => ({ timestamp: parseInt(timestamp), ...data }))
+        .sort((a, b) => b.timestamp - a.timestamp)
+    );
+  }, [demo.active, demo.data]);
 
   const fetchExerciseHistory = async (userEmail) => {
     try {
@@ -43,7 +55,7 @@ const MyExerSights = () => {
   // call this method whenever authentication changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+      if (user && !demo.active) {
         setIsAuth(true); // signed in
         fetchExerciseHistory(auth.currentUser.email);
       } else {
@@ -52,7 +64,8 @@ const MyExerSights = () => {
     });
 
     return () => unsubscribe();
-  }, [auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth, demo.active]);
 
   return (
     <Box

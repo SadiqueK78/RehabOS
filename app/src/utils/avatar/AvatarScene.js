@@ -94,9 +94,15 @@ export default class AvatarScene {
     this.lastCue = null;
     this.disposed = false;
     this.insets = { top: 0, bottom: 0 };
+    // The camera feed and pose tracking want the GPU far more than the coach does, so the coach
+    // draws at a steady 30fps, and not at all while it is off-screen or the tab is in the background.
+    this.fpsCap = 30;
+    this._frameDebt = 0;
+    this._inView = true;
+    this.losses = 0;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
@@ -127,11 +133,23 @@ export default class AvatarScene {
     this._onLost = (e) => {
       e.preventDefault();
       this.contextLost = true;
+      this.losses++;
       this.callbacks.onContextChange?.(true);
     };
     this._onRestored = () => {
       this.contextLost = false;
+      // Coming back at full quality into the same memory pressure just loses the context again,
+      // so a coach that keeps being dropped comes back lighter instead.
+      if (this.losses >= 2) {
+        this.renderer.setPixelRatio(1);
+        this.renderer.shadowMap.enabled = false;
+        this.scene.traverse((o) => {
+          if (o.material) o.material.needsUpdate = true;
+        });
+        this.fpsCap = 24;
+      }
       this._buildEnvironment();
+      this.resize();
       this.callbacks.onContextChange?.(false);
     };
     this.renderer.domElement.addEventListener("webglcontextlost", this._onLost);
@@ -140,6 +158,10 @@ export default class AvatarScene {
     this._buildStage();
     this._resizeObserver = new ResizeObserver(() => this.resize());
     this._resizeObserver.observe(container);
+    this._inViewObserver = new IntersectionObserver(([entry]) => {
+      this._inView = entry.isIntersecting;
+    });
+    this._inViewObserver.observe(container);
     this.resize();
 
     this.clock = new THREE.Clock();
@@ -440,6 +462,14 @@ export default class AvatarScene {
         return pose;
       },
       // Height of a bone above the floor in a pose (used to solve body angles for floor contact).
+      // Position of a bone in a pose, e.g. to place hands on a wall in front of the shoulders.
+      bonePos: (pose, opts, name) => {
+        this.rig.resetAnchor();
+        this.rig.pose(pose, opts);
+        const p = this.rig.pos(name).toArray();
+        this.rig.resetAnchor();
+        return p;
+      },
       boneY: (pose, opts, name) => {
         this.rig.resetAnchor();
         this.rig.pose(pose, opts);
@@ -673,6 +703,12 @@ export default class AvatarScene {
       this.propInfo.wall = { z: this.ctx.wall.z };
     }
 
+    // A wall in front of the coach (wall push-ups); ctx.wallFront.z is its front face.
+    if (props.includes("wallFront") && this.ctx?.wallFront) {
+      add(new THREE.BoxGeometry(3.2, 2.6, 0.1), std(th.wall, 0.95), 0, 1.3, this.ctx.wallFront.z + 0.05);
+      this.propInfo.wallFront = { z: this.ctx.wallFront.z };
+    }
+
     if (props.includes("bar") && this.ctx?.bar) {
       const { y, z, width } = this.ctx.bar;
       const steel = std(0xc9ced6, 0.25, 0.9);
@@ -714,8 +750,13 @@ export default class AvatarScene {
     if (this.disposed) return;
     this._raf = requestAnimationFrame(this._loop);
     const dt = Math.min(this.clock.getDelta(), 0.1);
-    if (this.contextLost) return;
-    if (this.rig) this._applyPose(dt);
+    if (this.contextLost || document.hidden || !this._inView) return;
+    // Skipped frames still count towards the motion, so the coach keeps time either way.
+    this._frameDebt += dt;
+    if (this._frameDebt < 1 / this.fpsCap) return;
+    const step = this._frameDebt;
+    this._frameDebt = 0;
+    if (this.rig) this._applyPose(step);
     this.controls.update();
     this._updateFog();
     this.renderer.render(this.scene, this.camera);
@@ -726,6 +767,7 @@ export default class AvatarScene {
     cancelAnimationFrame(this._raf);
     this._resizeObserver?.disconnect();
     this.controls.dispose();
+    this._inViewObserver?.disconnect();
     this.scene.traverse((o) => {
       if (o.isMesh) {
         o.geometry?.dispose();
