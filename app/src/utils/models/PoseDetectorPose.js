@@ -1,6 +1,7 @@
 import { Pose } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+import * as timing from './timing';
 
 const POSE_CONNECTIONS_NON_FACE = [
     [11, 12], [12, 14], [14, 16], [11, 13], [13, 15], [15, 17], [11, 23], [12, 24],
@@ -37,6 +38,7 @@ const detectPose = (webcamRef, canvasRef, onResultsCallback) => {
     }
 
     pose.onResults((results) => {
+        timing.inferDone();
         const canvasCtx = canvasRef.current.getContext('2d');
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -61,6 +63,7 @@ const detectPose = (webcamRef, canvasRef, onResultsCallback) => {
         const camera = new Camera(webcamRef.current.video, {
             onFrame: async () => {
                 if (webcamRef.current && webcamRef.current.video) {
+                    timing.frameStart();
                     await pose.send({ image: webcamRef.current.video });
                 }
             },

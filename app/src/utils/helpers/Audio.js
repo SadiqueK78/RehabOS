@@ -1,5 +1,6 @@
 import rep from '../../assets/correct.wav';
 import { sharedVoice } from '../avatar/coachSpeech';
+import { feedbackSpoken } from '../models/timing';
 
 let voiceName = "Google US English";
 let selectedVoice = null;
@@ -95,6 +96,8 @@ const playText = (text) => {
     if (!speechUnlocked || voiceName === "None") {
         return;
     }
+
+    feedbackSpoken();
 
     // Queued through the shared voice: form feedback and the coach's cues use the same speech
     // engine, and cancelling here used to cut the coach off in the middle of a sentence.

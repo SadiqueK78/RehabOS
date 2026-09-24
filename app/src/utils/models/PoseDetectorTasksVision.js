@@ -1,5 +1,6 @@
 import { FilesetResolver, PoseLandmarker, DrawingUtils } from "@mediapipe/tasks-vision";
 import poseLandmarkerTask from "../../shared/models/pose_landmarker_lite.task";
+import * as timing from "./timing";
 
 const POSE_CONNECTIONS_NON_FACE = [
   { start: 11, end: 12 },
@@ -57,7 +58,9 @@ const detectPose = async (webcamRef, canvasRef, onResultCallback, drawSkeleton) 
   const detectAndDraw = () => {
     if (webcamRef.current && webcamRef.current.video.readyState >= 2) {
       try {
+        timing.frameStart();
         poseLandmarker.detectForVideo(webcamRef.current.video, performance.now(), (result) => {
+          timing.inferDone();
           if (!result || !result.landmarks || result.landmarks.length === 0) return;
           
           const canvas = canvasRef.current;

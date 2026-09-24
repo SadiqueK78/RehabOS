@@ -5,6 +5,7 @@ import SettingsModal from "../../components/SettingsModal";
 import FeedbackPanel from "../../components/FeedbackPanel";
 import ExerciseBox from "../../components/ExerciseBox";
 import { resetRepCount, resetExerciseMotionTracking } from "../../utils/GenFeedback";
+import { feedbackShown } from "../../utils/models/timing";
 import { loadExerciseData } from "./ExercisePageData";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import toast from "react-hot-toast";
@@ -56,6 +57,11 @@ function ExercisePage({ exerciseName: propExerciseName }) {
   const [playFeedback, setPlayFeedback] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [firstPlayFeedback, setFirstPlayFeedback] = useState(true);
+
+  // Verification T-002: mark the frame-to-visible-feedback latency once the browser has painted.
+  useEffect(() => {
+    if (feedback) requestAnimationFrame(feedbackShown);
+  }, [feedback]);
 
   const targetAnglesRef = useRef({});
   const playFeedbackRef = useRef(playFeedback);
