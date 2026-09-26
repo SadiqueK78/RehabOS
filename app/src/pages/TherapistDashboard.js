@@ -50,11 +50,19 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import content from "../assets/content.json";
+import { canJoinSession } from "../utils/sessions/schedule";
 import "./TherapistDashboard.css";
 
 function TherapistDashboard() {
   const navigate = useNavigate();
   const [therapist, setTherapist] = useState(null);
+  // A ticking clock, so a session becomes joinable on its own rather than only after the next
+  // thing that happens to re-render the dashboard.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 20000);
+    return () => clearInterval(id);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(0);
 
@@ -283,14 +291,22 @@ function TherapistDashboard() {
         scheduledTime: scheduleTime,
         therapistId: therapist.uid,
         therapistName: therapist.name,
+        // Recorded so the in-app reminder can find the therapist's own sessions, not just the
+        // patient's.
+        therapistEmail: therapist.email || getAuth().currentUser?.email || null,
       });
       toast.success("Appointment scheduled!");
       setScheduleOpen(false);
 
-      // Send email notification to patient
+      // Email the patient, if a notification backend is configured. This address used to be
+      // hardcoded to http://localhost:5000, which no deployed build can reach and which the
+      // browser blocks outright from an https page, so this email never actually sent in
+      // production. A relative path goes through the dev proxy locally, or through whatever
+      // REACT_APP_API_BASE points at once a backend exists.
       const sessionLink = `${window.location.origin}/session/${schedulingAppt.id}`;
+      const apiBase = process.env.REACT_APP_API_BASE || "";
       try {
-        await fetch("http://localhost:5000/api/send-session-notification", {
+        await fetch(`${apiBase}/api/send-session-notification`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -304,8 +320,10 @@ function TherapistDashboard() {
         });
         toast.success("Notification email sent to patient!");
       } catch (emailErr) {
-        console.error("Failed to send notification email:", emailErr);
-        toast.error("Appointment scheduled but email notification failed.");
+        // Not a scheduling failure: the appointment is saved, and both people are reminded in
+        // the app when the session is about to start.
+        console.warn("Session notification email not sent:", emailErr);
+        toast("Scheduled. Both of you will be reminded in the app when it starts.");
       }
     } catch (err) {
       console.error("Error scheduling appointment:", err);
@@ -320,15 +338,6 @@ function TherapistDashboard() {
     } catch (err) {
       toast.error("Failed to cancel.");
     }
-  };
-
-  const canJoinSession = (appt) => {
-    if (appt.status !== "scheduled" && appt.status !== "in-progress") return false;
-    if (!appt.scheduledDate || !appt.scheduledTime) return false;
-    const scheduled = new Date(`${appt.scheduledDate}T${appt.scheduledTime}`);
-    const now = new Date();
-    const diffMin = (scheduled - now) / 60000;
-    return diffMin <= 15 && diffMin >= -120;
   };
 
   const pendingAppts = appointments.filter((a) => a.status === "pending");
@@ -825,11 +834,11 @@ function TherapistDashboard() {
                         variant="contained"
                         startIcon={<VideocamIcon />}
                         onClick={() => navigate(`/session/${appt.id}`)}
-                        disabled={!canJoinSession(appt) && appt.status !== "in-progress"}
+                        disabled={!canJoinSession(appt, now) && appt.status !== "in-progress"}
                         sx={{
                           textTransform: "none",
                           fontWeight: 600,
-                          background: canJoinSession(appt) || appt.status === "in-progress"
+                          background: canJoinSession(appt, now) || appt.status === "in-progress"
                             ? "linear-gradient(135deg, #22c55e, #16a34a)"
                             : undefined,
                         }}

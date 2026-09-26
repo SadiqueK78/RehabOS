@@ -46,6 +46,7 @@ import {
 import { SectionCard, StatTile, IconBubble, SignInPrompt, usePatientAppointments, appointmentWhen } from "../components/patient/ui";
 import HealthLogDialog from "../components/patient/HealthLogDialog";
 import HappyMeterCard from "../components/patient/HappyMeterCard";
+import { canJoinSession, sessionState } from "../utils/sessions/schedule";
 import ReminderDialog from "../components/patient/ReminderDialog";
 import TwinPicker, { useTwinChoice } from "../components/patient/TwinPicker";
 
@@ -325,14 +326,31 @@ function PatientDashboard() {
               <Typography color="text.secondary">No upcoming sessions. Book a video session with a physiotherapist when you need one.</Typography>
             ) : (
               <Stack spacing={1}>
-                {upcoming.map((a) => (
-                  <Card key={a.id} variant="outlined" sx={{ p: 1.25, borderRadius: 3 }}>
-                    <Typography sx={{ fontWeight: 600 }}>{appointmentWhen(a)}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {a.therapistName ? `Physiotherapy · ${a.therapistName}` : "Physiotherapy session"} · {a.status === "scheduled" ? "Confirmed" : "Awaiting confirmation"}
-                    </Typography>
-                  </Card>
-                ))}
+                {upcoming.map((a) => {
+                  const live = sessionState(a).state === "live";
+                  return (
+                    <Card key={a.id} variant="outlined" sx={{ p: 1.25, borderRadius: 3 }}>
+                      <Typography sx={{ fontWeight: 600 }}>{appointmentWhen(a)}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {a.therapistName ? `Physiotherapy · ${a.therapistName}` : "Physiotherapy session"} ·{" "}
+                        {live ? "Live now" : a.status === "scheduled" ? "Confirmed" : "Awaiting confirmation"}
+                      </Typography>
+                      {/* The way into the call, on the page patients actually sit on. */}
+                      {canJoinSession(a) && (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color={live ? "success" : "primary"}
+                          startIcon={<VideocamIcon />}
+                          component={RouterLink}
+                          to={`/session/${a.id}`}
+                          sx={{ mt: 1, borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+                          {live ? "Join live session" : "Join session"}
+                        </Button>
+                      )}
+                    </Card>
+                  );
+                })}
               </Stack>
             )}
           </SectionCard>

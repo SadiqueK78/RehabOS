@@ -7,6 +7,7 @@ import FAQ from "./pages/FAQ";
 import AIAnalysis from "./pages/AIAnalysis";
 import SquatPage from "./pages/exercises/SquatPage";
 import Menubar from "./components/Menubar";
+import SessionReminder from "./components/SessionReminder";
 import Program from "./pages/Program";
 import ProgramOverlay from "./pages/ProgramOverlay";
 import { ThemeProvider } from "@mui/material/styles";
@@ -55,6 +56,9 @@ function AppContent({ darkMode, toggleDarkMode }) {
       <PageViewTracker />
       {!hideNav && <LoginPrompt />}
       {!hideNav && <Menubar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />}
+      {/* The session is announced wherever the patient or therapist happens to be, except
+          inside the session room itself, where they have already arrived. */}
+      {!isSessionRoute && <SessionReminder />}
 
       <Routes>
         <Route path="/" element={<HomeOrDashboard />} />

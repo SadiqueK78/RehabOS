@@ -28,6 +28,7 @@ import {
 import { db } from "../firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { canJoinSession, sessionState, todayLocal, isFutureSlot } from "../utils/sessions/schedule";
 import "./BookSession.css";
 
 function BookSession() {
@@ -45,6 +46,13 @@ function BookSession() {
 
   // Appointments
   const [appointments, setAppointments] = useState([]);
+  // Re-render on a timer: without it the Join button only appears if something else happens to
+  // refresh the page, so a patient watching the clock never sees their session open.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 20000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -77,6 +85,10 @@ function BookSession() {
   const handleSubmit = async () => {
     if (!preferredDate || !preferredTime || !injuryDetails.trim()) {
       toast.error("Please fill in all fields.");
+      return;
+    }
+    if (!isFutureSlot(preferredDate, preferredTime)) {
+      toast.error("Please choose a date and time in the future.");
       return;
     }
 
@@ -122,20 +134,16 @@ function BookSession() {
     return map[status] || { color: "#9ca3af", bg: "rgba(156,163,175,0.1)", label: status, icon: "❓" };
   };
 
-  const canJoinSession = (appt) => {
-    if (appt.status !== "scheduled") return false;
-    if (!appt.scheduledDate || !appt.scheduledTime) return false;
-    const scheduled = new Date(`${appt.scheduledDate}T${appt.scheduledTime}`);
-    const now = new Date();
-    const diffMin = (scheduled - now) / 60000;
-    return diffMin <= 15 && diffMin >= -120; // 15 min before to 2 hrs after
-  };
 
-  const upcoming = appointments.filter((a) => a.status === "pending" || a.status === "scheduled");
+  // "in-progress" belongs here too: a call the therapist has already started is the most
+  // upcoming thing there is, and leaving it out hid live sessions from the patient entirely.
+  const upcoming = appointments.filter(
+    (a) => a.status === "pending" || a.status === "scheduled" || a.status === "in-progress"
+  );
   const past = appointments.filter((a) => a.status === "completed" || a.status === "cancelled");
 
   // Min date is today  
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal(now);
 
   if (loading) {
     return (
@@ -254,7 +262,7 @@ function BookSession() {
           <div className="appointments-grid">
             {upcoming.map((appt) => {
               const status = getStatusInfo(appt.status);
-              const joinable = canJoinSession(appt);
+              const joinable = canJoinSession(appt, now);
               return (
                 <div className="appointment-card" key={appt.id}>
                   <div className="appt-header">
@@ -295,7 +303,7 @@ function BookSession() {
                       }}
                       fullWidth
                     >
-                      Join Session
+                      {sessionState(appt, now).state === "live" ? "Join live session" : "Join Session"}
                     </Button>
                   )}
                 </div>

@@ -1,6 +1,10 @@
 /* ───── Root ───── */
 .session-room-root {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #0a0a0a;
   color: #e0e0e0;
 }
@@ -15,6 +19,7 @@
 
 /* ───── Top Bar ───── */
 .session-topbar {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,25 +46,33 @@
 
 /* ───── Layout ───── */
 .session-layout {
+  flex: 1;
   display: grid;
   grid-template-columns: 1fr 360px;
-  height: calc(100vh - 56px);
+  /* min-height: 0 lets the video area shrink to the space available. Without it a grid item is
+     at least as tall as its content, so the remote video's own frame size (say 1280x720) pushed
+     the row open the moment the call connected, and the whole session grew a scrollbar. */
+  min-height: 0;
 }
 
 /* ───── Video Section ───── */
 .video-section {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: 0;
   background: #0a0a0a;
 }
 .video-grid {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: minmax(0, 1fr);
   gap: 8px;
   padding: 12px;
   position: relative;
+  min-height: 0;
+  overflow: hidden;
 }
 .video-container {
   position: relative;
@@ -67,6 +80,8 @@
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid #1e1e1e;
+  min-width: 0;
+  min-height: 0;
 }
 .video-container.local {
   height: 160px;
@@ -78,8 +93,14 @@
   z-index: 5;
 }
 .video-element {
+  display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+/* The small self-view is a thumbnail, so filling it is the right look there. */
+.video-container.local .video-element {
   object-fit: cover;
 }
 .video-placeholder {
@@ -121,6 +142,7 @@
 
 /* ───── Side Panel ───── */
 .session-panel {
+  min-height: 0;
   background: #111;
   border-left: 1px solid #1e1e1e;
   overflow-y: auto;
@@ -318,13 +340,15 @@
 @media (max-width: 900px) {
   .session-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-    height: auto;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
   .session-panel {
     border-left: none;
     border-top: 1px solid #1e1e1e;
     max-height: 50vh;
+  }
+  .video-section {
+    min-height: 240px;
   }
   .video-container.local {
     height: 120px;
