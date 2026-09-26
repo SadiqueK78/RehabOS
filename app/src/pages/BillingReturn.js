@@ -3,7 +3,7 @@ import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-d
 import { Alert, Box, Button, CircularProgress, Container, Stack, Typography } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassTopIcon from "@mui/icons-material/HourglassTop";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { planById } from "../utils/billing/plans";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "";
@@ -24,10 +24,16 @@ function BillingReturn() {
   const [state, setState] = useState("checking"); // checking | granted | pending | failed
   const [planName, setPlanName] = useState(null);
   const tries = useRef(0);
+  // undefined while Firebase is still restoring the session. Coming back from Stripe is a cold
+  // page load, so the signed-in user is not known on the first render; reading it synchronously
+  // made this page announce failure to someone who had just paid.
+  const [email, setEmail] = useState(undefined);
+
+  useEffect(() => onAuthStateChanged(getAuth(), (u) => setEmail(u?.email || null)), []);
 
   useEffect(() => {
-    const email = getAuth().currentUser?.email;
-    if (!sessionId || !email) {
+    if (email === undefined) return undefined; // still waiting to know who is signed in
+    if (!sessionId || email === null) {
       setState("failed");
       return undefined;
     }
@@ -60,7 +66,7 @@ function BillingReturn() {
     return () => {
       stop = true;
     };
-  }, [sessionId]);
+  }, [sessionId, email]);
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>

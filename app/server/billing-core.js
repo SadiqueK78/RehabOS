@@ -93,7 +93,10 @@ async function getEntitlements(email) {
     status: record.status || null,
     customerId: record.customerId || null,
     subscriptionId: record.subscriptionId || null,
+    currentPeriodStart: record.currentPeriodStart || null,
     currentPeriodEnd: record.currentPeriodEnd || null,
+    // Records written before startedAt existed fall back to when they were last written.
+    startedAt: record.startedAt || record.updatedAt || null,
     extraSessions: record.extraSessions || 0,
     updatedAt: record.updatedAt || null,
   };
@@ -155,11 +158,15 @@ async function handleEvent(event) {
         const current = await recordFor(email);
         await updateRecord(email, { extraSessions: (current?.extraSessions || 0) + 1 });
       } else {
+        const current = await recordFor(email);
         await updateRecord(email, {
           planId,
           status: "active",
           customerId: typeof object.customer === "string" ? object.customer : object.customer?.id || null,
           subscriptionId: typeof object.subscription === "string" ? object.subscription : null,
+          // Sessions booked before this moment belong to whatever came before, so the allowance
+          // counts from here. Kept on a plan change so an upgrade does not reset the month.
+          startedAt: current?.startedAt || Date.now(),
         });
       }
       break;
@@ -182,6 +189,7 @@ async function handleEvent(event) {
         status: ended ? "canceled" : object.status,
         subscriptionId: object.id,
         customerId: typeof object.customer === "string" ? object.customer : object.customer?.id || null,
+        currentPeriodStart: object.current_period_start ? object.current_period_start * 1000 : null,
         currentPeriodEnd: object.current_period_end ? object.current_period_end * 1000 : null,
       });
       break;

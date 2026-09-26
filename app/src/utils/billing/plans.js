@@ -123,12 +123,21 @@ export function sessionMonth(appt) {
   return Number.isNaN(d.getTime()) ? null : monthKey(d);
 }
 
-/** Sessions used this month and rehab plans held, from the patient's own records. */
-export function usage({ appointments = [], rehabPlans = [] } = {}, now = new Date()) {
+/**
+ * Sessions booked this month and rehab plans held, from the patient's own records.
+ *
+ * `since` is when the current plan started. Sessions booked before that were booked under a
+ * different arrangement and do not spend this plan's allowance — otherwise a patient who books
+ * a session and subscribes afterwards finds their new plan already used up.
+ */
+export function usage({ appointments = [], rehabPlans = [], since = null } = {}, now = new Date()) {
   const thisMonth = monthKey(now);
-  const sessions = appointments.filter(
-    (a) => a && a.status !== "cancelled" && sessionMonth(a) === thisMonth
-  ).length;
+  const sessions = appointments.filter((a) => {
+    if (!a || a.status === "cancelled") return false;
+    if (sessionMonth(a) !== thisMonth) return false;
+    if (since && a.createdAt && a.createdAt < since) return false;
+    return true;
+  }).length;
   const plans = rehabPlans.filter((p) => p && p.status !== "archived").length;
   return { sessionsThisMonth: sessions, rehabPlans: plans, month: thisMonth };
 }
@@ -144,7 +153,10 @@ const allowance = (limit, used, extra = 0) => {
  */
 export function entitlement({ subscription, appointments, rehabPlans, extraSessions = 0 } = {}, now = new Date()) {
   const plan = activePlan(subscription);
-  const used = usage({ appointments, rehabPlans }, now);
+  // The allowance counts from the start of the current billing period, or from when the plan
+  // was first granted.
+  const since = subscription?.currentPeriodStart || subscription?.startedAt || null;
+  const used = usage({ appointments, rehabPlans, since }, now);
   return {
     plan,
     sessions: allowance(plan.liveSessionsPerMonth, used.sessionsThisMonth, extraSessions),

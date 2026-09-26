@@ -15,8 +15,8 @@ import {
 } from "./plans";
 
 const NOW = new Date("2026-09-24T10:00:00");
-const sub = (planId, status = "active") => ({ planId, status });
-const appt = (date, status = "scheduled") => ({ scheduledDate: date, status });
+const sub = (planId, status = "active", extra = {}) => ({ planId, status, ...extra });
+const appt = (date, status = "scheduled", createdAt = 0) => ({ scheduledDate: date, status, createdAt });
 
 describe("the plans themselves", () => {
   it("stay under the ceiling UPI AutoPay puts on a recurring charge", () => {
@@ -75,6 +75,28 @@ describe("counting what has been used", () => {
       appt("2026-10-01"),
     ];
     expect(usage({ appointments }, NOW).sessionsThisMonth).toBe(2);
+  });
+
+  it("ignores sessions booked before the plan started", () => {
+    // Someone books two sessions, then subscribes. The new plan should not arrive used up.
+    const planStarted = new Date("2026-09-20T10:00:00").getTime();
+    const appointments = [
+      appt("2026-09-10", "completed", new Date("2026-09-05T10:00:00").getTime()),
+      appt("2026-09-12", "scheduled", new Date("2026-09-06T10:00:00").getTime()),
+      appt("2026-09-25", "scheduled", new Date("2026-09-22T10:00:00").getTime()),
+    ];
+    expect(usage({ appointments }, NOW).sessionsThisMonth).toBe(3);
+    expect(usage({ appointments, since: planStarted }, NOW).sessionsThisMonth).toBe(1);
+
+    const ctx = { subscription: sub("recover", "active", { startedAt: planStarted }), appointments };
+    expect(entitlement(ctx, NOW).sessions).toMatchObject({ used: 1, limit: 2, remaining: 1 });
+  });
+
+  it("counts from the current billing period when Stripe reports one", () => {
+    const appointments = [appt("2026-09-05", "completed", new Date("2026-09-05T09:00:00").getTime())];
+    const renewed = { startedAt: new Date("2026-07-01T00:00:00").getTime(), currentPeriodStart: new Date("2026-09-15T00:00:00").getTime() };
+    const ctx = { subscription: sub("recover", "active", renewed), appointments };
+    expect(entitlement(ctx, NOW).sessions.used).toBe(0);
   });
 
   it("counts rehab plans that are still in use", () => {

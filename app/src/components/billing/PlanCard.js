@@ -37,8 +37,9 @@ function PlanCard({ sx }) {
     setBusy(true);
     try {
       await openBillingPortal(email);
-    } catch {
-      toast("Billing management opens once the payment server is running.");
+    } catch (err) {
+      // Say what actually went wrong rather than guessing at the cause.
+      toast.error(err.message || "Billing management is not available right now.");
     } finally {
       setBusy(false);
     }
@@ -68,7 +69,7 @@ function PlanCard({ sx }) {
               Live sessions
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {sessions.limit ? `${sessions.used} of ${sessions.limit} used` : "Not on this plan"}
+              {sessions.limit ? `${sessions.used} of ${sessions.limit} booked` : "Not on this plan"}
             </Typography>
           </Stack>
           {sessions.limit > 0 && (

@@ -87,13 +87,17 @@ export async function confirmCheckout(sessionId) {
 }
 
 /** Stripe's own page for changing card, plan or cancelling. */
-export async function openBillingPortal(customerId) {
+export async function openBillingPortal(email) {
   const res = await fetch(`${API_BASE}/api/billing/portal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customerId, origin: window.location.origin }),
+    // The server looks the Stripe customer up from the account, so it wants the email.
+    body: JSON.stringify({ email, origin: window.location.origin }),
   });
-  if (!res.ok) throw new Error("The billing portal is not available.");
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.error || "The billing portal is not available.");
+  }
   const { url } = await res.json();
   window.location.href = url;
 }

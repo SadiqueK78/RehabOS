@@ -38,7 +38,13 @@ export function useEntitlement() {
         setServerSub(sub);
         // Mirror onto the patient record, so the plan still shows if the billing server is down.
         if (sub?.planId && sub.planId !== data?.subscription?.planId) {
-          saveSubscription(email, { planId: sub.planId, status: sub.status, currentPeriodEnd: sub.currentPeriodEnd });
+          saveSubscription(email, {
+            planId: sub.planId,
+            status: sub.status,
+            currentPeriodEnd: sub.currentPeriodEnd,
+            currentPeriodStart: sub.currentPeriodStart || null,
+            startedAt: sub.startedAt || null,
+          });
         }
       } catch {
         /* no billing server: fall back to whatever is on the patient record */
