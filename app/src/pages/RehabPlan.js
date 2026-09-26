@@ -25,6 +25,8 @@ import { useDemo, updateDemoData } from "../utils/patient/demoPatient";
 import { db } from "../firebaseConfig";
 import { analyzeInjury, extractTextFromPDF } from "../utils/rehab/injuryAnalyzer";
 import toast from "react-hot-toast";
+import useEntitlement from "../utils/billing/useEntitlement";
+import TherapistPicker from "../components/TherapistPicker";
 
 function RehabPlan() {
   const auth = getAuth();
@@ -108,12 +110,22 @@ function RehabPlan() {
     setAnalyzing(false);
   };
 
+  // The plan the patient pays for decides how many rehab plans they may keep, and whether they
+  // choose the physiotherapist who reviews this one.
+  const ent = useEntitlement();
+  const [reviewer, setReviewer] = useState({ id: null, name: null });
+
   const handleSavePlan = async () => {
     if (!isAuth) {
       toast.error("Please sign in to save your rehabilitation plan.");
       return;
     }
     if (!result || !result.found) return;
+    // Replacing the plan you already have is always allowed; keeping several needs a bigger plan.
+    if (!existingPlan && ent.plans.exhausted) {
+      toast.error(`Your ${ent.plan.name} plan covers ${ent.plans.limit} rehab plan${ent.plans.limit === 1 ? "" : "s"}.`);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -134,6 +146,8 @@ function RehabPlan() {
         weeklySchedule: result.weeklySchedule,
         createdAt: Date.now(),
         status: "pending",
+        requestedTherapistId: ent.therapistChoice ? reviewer.id : null,
+        requestedTherapistName: ent.therapistChoice ? reviewer.name : null,
       };
       if (demo.active) {
         await updateDemoData((d) => ({ ...d, rehabPlan: plan }));
@@ -404,6 +418,14 @@ function RehabPlan() {
 
               {isAuth && (
                 <Box sx={{ textAlign: "center" }}>
+                  <Box sx={{ maxWidth: 720, mx: "auto", mb: 2, textAlign: "left" }}>
+                    <TherapistPicker
+                      value={reviewer.id}
+                      onChange={setReviewer}
+                      allowed={ent.therapistChoice}
+                      label="Who should review this plan?"
+                    />
+                  </Box>
                   <Button
                     variant="contained"
                     size="large"

@@ -22,3 +22,5 @@ yarn-debug.log*
 yarn-error.log*
 
 /.firebase
+# Stripe entitlement store written by the billing server
+server/.billing-store.json

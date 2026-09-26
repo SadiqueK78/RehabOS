@@ -8,7 +8,11 @@ const app = express();
 const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB max
 
 app.use(cors());
-app.use(express.json());
+// Stripe signs its webhook against the exact bytes it sent, so that one route keeps its raw
+// body and every other route gets the parsed JSON it expects.
+app.use((req, res, next) =>
+  req.originalUrl === "/api/billing/webhook" ? next() : express.json()(req, res, next)
+);
 
 /* =============================================
    SYSTEM PROMPT – RehabOS Physio Assistant
@@ -319,8 +323,21 @@ app.post("/api/send-session-notification", async (req, res) => {
   }
 });
 
-// Health check
-app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+// Billing lives in its own file: Stripe checkout, the customer portal and the webhook
+// that actually grants and removes access.
+const billing = require("./billing");
+app.use(billing);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`RehabOS mail server running on port ${PORT}`));
+// Health check
+app.get("/api/health", (_req, res) =>
+  res.json({ status: "ok", stripe: billing.isConfigured() ? "configured" : "not configured" })
+);
+
+// On Vercel this file is imported by api/index.js and the platform does the listening, so only
+// start a server when this file is run directly (npm run server / npm run dev).
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`RehabOS server running on port ${PORT}`));
+}
+
+module.exports = app;

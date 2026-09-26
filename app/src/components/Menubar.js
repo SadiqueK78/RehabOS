@@ -30,6 +30,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import EmailIcon from "@mui/icons-material/Email";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
 import HealingIcon from "@mui/icons-material/Healing";
@@ -53,6 +54,7 @@ const PRIMARY = [
   { text: "SESSIONS", path: "/book-session", icon: <VideocamIcon /> },
 ];
 const MORE = [
+  { text: "PLANS & PRICING", path: "/pricing", icon: <WorkspacePremiumIcon /> },
   { text: "PROGRAM", path: "/program", icon: <ContentPasteIcon /> },
   { text: "AI ANALYSIS", path: "/ai-analysis", icon: <AutoGraphIcon /> },
   { text: "FAQ", path: "/faq", icon: <EmailIcon /> },

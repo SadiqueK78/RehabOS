@@ -46,6 +46,7 @@ import {
 import { SectionCard, StatTile, IconBubble, SignInPrompt, usePatientAppointments, appointmentWhen } from "../components/patient/ui";
 import HealthLogDialog from "../components/patient/HealthLogDialog";
 import HappyMeterCard from "../components/patient/HappyMeterCard";
+import PlanCard from "../components/billing/PlanCard";
 import { canJoinSession, sessionState } from "../utils/sessions/schedule";
 import ReminderDialog from "../components/patient/ReminderDialog";
 import TwinPicker, { useTwinChoice } from "../components/patient/TwinPicker";
@@ -310,6 +311,11 @@ function PatientDashboard() {
         {/* Happy meter */}
         <Box sx={{ gridColumn: { md: "span 4" } }}>
           <HappyMeterCard email={user.email} healthLogs={data?.healthLogs} sx={{ height: "100%" }} />
+        </Box>
+
+        {/* Plan and allowances */}
+        <Box sx={{ gridColumn: { md: "span 4" } }}>
+          <PlanCard sx={{ height: "100%" }} />
         </Box>
 
         {/* Appointments */}

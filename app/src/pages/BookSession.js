@@ -29,6 +29,10 @@ import { db } from "../firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { canJoinSession, sessionState, todayLocal, isFutureSlot } from "../utils/sessions/schedule";
+import { canBookSession } from "../utils/billing/plans";
+import useEntitlement from "../utils/billing/useEntitlement";
+import TherapistPicker from "../components/TherapistPicker";
+import { Alert } from "@mui/material";
 import "./BookSession.css";
 
 function BookSession() {
@@ -41,8 +45,12 @@ function BookSession() {
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
   const [injuryDetails, setInjuryDetails] = useState("");
+  const [therapistChoice, setTherapistChoice] = useState({ id: null, name: null });
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // What the patient's plan allows: sessions left this month, and whether they pick the physio.
+  const ent = useEntitlement();
 
   // Appointments
   const [appointments, setAppointments] = useState([]);
@@ -91,6 +99,15 @@ function BookSession() {
       toast.error("Please choose a date and time in the future.");
       return;
     }
+    const allowance = canBookSession({
+      subscription: ent.subscription,
+      appointments,
+      extraSessions: ent.sessions.limit - ent.plan.liveSessionsPerMonth,
+    });
+    if (!allowance.allowed) {
+      toast.error(allowance.message);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -100,6 +117,9 @@ function BookSession() {
         preferredDate,
         preferredTime,
         injuryDetails: injuryDetails.trim(),
+        // Who the patient asked for; the therapist dashboard shows this when scheduling.
+        requestedTherapistId: ent.therapistChoice ? therapistChoice.id : null,
+        requestedTherapistName: ent.therapistChoice ? therapistChoice.name : null,
         status: "pending",
         createdAt: Date.now(),
         therapistId: null,
@@ -230,11 +250,43 @@ function BookSession() {
             <span className="char-count">{injuryDetails.length}/1000</span>
           </div>
 
+          {/* Who treats you, and how much of your plan is left. */}
+          <div className="form-field full">
+            <TherapistPicker
+              value={therapistChoice.id}
+              onChange={setTherapistChoice}
+              allowed={ent.therapistChoice}
+              label="Which physiotherapist would you like?"
+            />
+          </div>
+
+          <Alert
+            severity={ent.sessions.exhausted || ent.sessions.limit === 0 ? "warning" : "success"}
+            sx={{ mb: 1, borderRadius: 3 }}
+            action={
+              ent.sessions.exhausted || ent.sessions.limit === 0 ? (
+                <Button size="small" component={Link} to="/pricing">
+                  See plans
+                </Button>
+              ) : null
+            }>
+            {ent.sessions.limit === 0
+              ? "Live sessions come with the Recover plan and above."
+              : `${ent.sessions.remaining} of ${ent.sessions.limit} live sessions left this month on ${ent.plan.name}.`}
+          </Alert>
+
           <Button
             variant="contained"
             startIcon={<SendIcon />}
             onClick={() => setConfirmOpen(true)}
-            disabled={!preferredDate || !preferredTime || !injuryDetails.trim() || submitting}
+            disabled={
+              !preferredDate ||
+              !preferredTime ||
+              !injuryDetails.trim() ||
+              submitting ||
+              ent.sessions.exhausted ||
+              ent.sessions.limit === 0
+            }
             sx={{
               background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
               textTransform: "none",

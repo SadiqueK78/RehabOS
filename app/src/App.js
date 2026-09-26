@@ -26,6 +26,8 @@ import RehabPlan from "./pages/RehabPlan";
 import TherapistLogin from "./pages/TherapistLogin";
 import TherapistDashboard from "./pages/TherapistDashboard";
 import BookSession from "./pages/BookSession";
+import Pricing from "./pages/Pricing";
+import BillingReturn from "./pages/BillingReturn";
 import SessionRoom from "./pages/SessionRoom";
 import PatientDashboard from "./pages/PatientDashboard";
 import DigitalTwin from "./pages/DigitalTwin";
@@ -78,6 +80,8 @@ function AppContent({ darkMode, toggleDarkMode }) {
         <Route path="/ai-analysis" element={<AIAnalysis />} />
         <Route path="/rehab-plan" element={<RehabPlan />} />
         <Route path="/book-session" element={<BookSession />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/billing/return" element={<BillingReturn />} />
         <Route path="/session/:roomId" element={<SessionRoom />} />
         <Route path="/therapist/login" element={<TherapistLogin />} />
         <Route path="/therapist/dashboard" element={<TherapistDashboard />} />
