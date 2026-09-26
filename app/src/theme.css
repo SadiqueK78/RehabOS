@@ -1,0 +1,49 @@
+/**
+ * Colours for the parts of RehabOS that are styled with plain CSS rather than MUI.
+ *
+ * MUI components follow the theme on their own, but several pages (FAQ, session booking, the AI
+ * analysis report, the chat assistant) have their own stylesheets with the dark palette written
+ * into them. Those pages stayed dark when a patient switched to light mode. These variables give
+ * them one set of names to use, and `data-theme` on the html element flips them.
+ *
+ * Accent colours (indigo, green, amber) are deliberately not here: they read well on both
+ * backgrounds and are meant to stay put.
+ */
+
+:root,
+html[data-theme="dark"] {
+  --rehab-bg: #0a0a0a;
+  --rehab-bg-raised: #141414;
+  --rehab-surface: #1a1a2e;
+  --rehab-border: #1e1e1e;
+  --rehab-border-strong: #2a2a3e;
+  --rehab-text: #e0e0e0;
+  --rehab-text-strong: #ffffff;
+  --rehab-text-dim: #9ca3af;
+  --rehab-text-faint: #6b7280;
+  --rehab-shadow: rgba(0, 0, 0, 0.45);
+  --rehab-glow: rgba(99, 102, 241, 0.25);
+  --rehab-glow-soft: rgba(99, 102, 241, 0.18);
+  --rehab-glow-violet: rgba(139, 92, 246, 0.2);
+  /* Indigo text that has to stay legible on the page background. */
+  --rehab-accent-text: #a5b4fc;
+}
+
+html[data-theme="light"] {
+  --rehab-bg: #ffffff;
+  --rehab-bg-raised: #f5f6f8;
+  --rehab-surface: #eef0f6;
+  --rehab-border: #dcdfe6;
+  --rehab-border-strong: #c3c8d4;
+  --rehab-text: #1a1c22;
+  --rehab-text-strong: #000000;
+  --rehab-text-dim: #5a6070;
+  --rehab-text-faint: #767d8d;
+  --rehab-shadow: rgba(15, 18, 25, 0.12);
+  /* Much fainter on a white page, where a strong glow just looks like a stain. */
+  --rehab-glow: rgba(99, 102, 241, 0.08);
+  --rehab-glow-soft: rgba(99, 102, 241, 0.06);
+  --rehab-glow-violet: rgba(139, 92, 246, 0.07);
+  /* The pale lavender that works on black washes out on white. */
+  --rehab-accent-text: #4f46e5;
+}

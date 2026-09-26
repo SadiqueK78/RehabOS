@@ -1,8 +1,8 @@
 /* ───── Root ───── */
 .book-session-root {
   min-height: 100vh;
-  background: #0a0a0a;
-  color: #e0e0e0;
+  background: var(--rehab-bg);
+  color: var(--rehab-text);
   padding-bottom: 80px;
 }
 
@@ -20,14 +20,14 @@
   transform: translateX(-50%);
   width: 600px;
   height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--rehab-glow-soft) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 .book-hero-title {
   font-size: 2.6rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #ffffff 30%, #818cf8 100%);
+  background: linear-gradient(135deg, var(--rehab-text-strong) 30%, #818cf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
@@ -36,7 +36,7 @@
 }
 .book-hero-subtitle {
   font-size: 1.1rem;
-  color: #9ca3af;
+  color: var(--rehab-text-dim);
   max-width: 580px;
   margin: 14px auto 0;
   line-height: 1.7;
@@ -51,8 +51,8 @@
   padding: 0 24px;
 }
 .book-form-card {
-  background: #141414;
-  border: 1px solid #1e1e1e;
+  background: var(--rehab-bg-raised);
+  border: 1px solid var(--rehab-border);
   border-radius: 18px;
   padding: 32px;
 }
@@ -65,7 +65,7 @@
 .form-header h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--rehab-text-strong);
   margin: 0;
 }
 .form-grid {
@@ -86,17 +86,17 @@
 .form-field label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #c7d2fe;
+  color: var(--rehab-accent-text);
   display: flex;
   align-items: center;
 }
 .form-input,
 .form-textarea {
-  background: #0d0d0d;
-  border: 1px solid #2a2a2a;
+  background: var(--rehab-bg-raised);
+  border: 1px solid var(--rehab-border-strong);
   border-radius: 10px;
   padding: 12px 14px;
-  color: #e0e0e0;
+  color: var(--rehab-text);
   font-size: 0.95rem;
   font-family: inherit;
   transition: border-color 0.2s;
@@ -115,7 +115,7 @@
   bottom: 8px;
   right: 14px;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--rehab-text-faint);
 }
 
 /* ───── Appointments Section ───── */
@@ -133,7 +133,7 @@
 .section-header h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--rehab-text-strong);
   margin: 0;
 }
 .appointments-grid {
@@ -144,14 +144,14 @@
 
 /* ───── Appointment Card ───── */
 .appointment-card {
-  background: #141414;
-  border: 1px solid #1e1e1e;
+  background: var(--rehab-bg-raised);
+  border: 1px solid var(--rehab-border);
   border-radius: 16px;
   padding: 20px;
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 .appointment-card:hover {
-  border-color: #333;
+  border-color: var(--rehab-border-strong);
 }
 .appointment-card.past {
   opacity: 0.8;
@@ -174,11 +174,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #d1d5db;
+  color: var(--rehab-text-dim);
   font-size: 0.92rem;
 }
 .appt-injury {
-  color: #9ca3af;
+  color: var(--rehab-text-dim);
   font-size: 0.88rem;
   line-height: 1.5;
   margin: 4px 0;
@@ -188,7 +188,7 @@
   overflow: hidden;
 }
 .appt-therapist {
-  color: #818cf8;
+  color: var(--rehab-accent-text);
   font-weight: 600;
   font-size: 0.88rem;
   margin: 2px 0;
@@ -198,7 +198,7 @@
   font-size: 0.88rem;
 }
 .appt-notes {
-  color: #9ca3af;
+  color: var(--rehab-text-dim);
   font-size: 0.85rem;
   font-style: italic;
   margin: 4px 0;
@@ -206,7 +206,7 @@
 .no-appointments {
   text-align: center;
   padding: 48px 24px;
-  color: #6b7280;
+  color: var(--rehab-text-faint);
 }
 
 /* ───── Responsive ───── */

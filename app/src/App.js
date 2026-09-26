@@ -106,6 +106,8 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
+    // Pages styled with their own CSS read this to pick up the theme (see theme.css).
+    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
   }, [darkMode]);
 
   let theme = createTheme({

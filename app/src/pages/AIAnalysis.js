@@ -801,7 +801,7 @@ function AIAnalysis() {
           <h3>Exercise Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie data={exerciseDistribution} dataKey="value" nameKey="name" outerRadius={110} label>
+              <Pie data={exerciseDistribution} dataKey="value" nameKey="name" outerRadius={88} label>
                 {exerciseDistribution.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
@@ -984,7 +984,7 @@ function AIAnalysis() {
                   <h3>Rehab Exercise Distribution</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
-                      <Pie data={rehabExerciseDistribution} dataKey="value" nameKey="name" outerRadius={110} label>
+                      <Pie data={rehabExerciseDistribution} dataKey="value" nameKey="name" outerRadius={88} label>
                         {rehabExerciseDistribution.map((_, i) => (
                           <Cell key={i} fill={COLORS[i % COLORS.length]} />
                         ))}
