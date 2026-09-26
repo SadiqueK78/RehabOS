@@ -27,8 +27,10 @@ export async function POST(request) {
   try {
     await core.handleEvent(event);
   } catch (err) {
-    // Answered 200 below regardless: a retry storm helps nobody, and the error is logged here.
+    // Answer with an error so Stripe retries. Saying 200 when the entitlement was not stored
+    // loses the payment silently, which is exactly what went wrong the first time this shipped.
     console.error("Stripe webhook handling failed:", event.type, err.message);
+    return new Response(`Handler error: ${err.message}`, { status: 500 });
   }
   return Response.json({ received: true });
 }

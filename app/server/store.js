@@ -6,38 +6,43 @@
  *   Firestore   when FIREBASE_SERVICE_ACCOUNT is set. This is what runs in production and the
  *               only one that works on Vercel, where each request may land on a fresh instance
  *               with a read-only disk and nothing kept between invocations.
- *   JSON file   otherwise, for running the server locally without any Firebase credentials.
+ *   JSON file   otherwise, for running the server locally without Firebase credentials.
  *
- * Records are keyed by the patient's email, lowercased, and live under billing/{email} so they
- * sit apart from the users collection the app itself writes.
+ * If a service account is configured but Firestore cannot be reached, this throws rather than
+ * quietly writing to a file that will vanish. A failed write must be visible: the webhook then
+ * answers with an error, Stripe retries, and the payment is not lost.
+ *
+ * Records are keyed by the patient's email, lowercased, under billing/{email}.
  */
 
 const fs = require("fs");
 const path = require("path");
 
 const FILE = process.env.BILLING_STORE || path.join(__dirname, ".billing-store.json");
+const configured = () => !!process.env.FIREBASE_SERVICE_ACCOUNT;
 
 let firestore = null;
-let firestoreTried = false;
+let initError = null;
 
 function db() {
-  if (firestoreTried) return firestore;
-  firestoreTried = true;
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) return null;
-  try {
-    const admin = require("firebase-admin");
-    const credential = JSON.parse(raw);
-    if (!admin.apps.length) {
-      admin.initializeApp({ credential: admin.credential.cert(credential) });
-    }
-    firestore = admin.firestore();
-  } catch (err) {
-    // Better to fall back to the file and log loudly than to silently lose a payment.
-    console.error("Billing store: Firestore unavailable, using the local file.", err.message);
-    firestore = null;
+  if (!configured()) return null;
+  if (firestore || initError) {
+    if (initError) throw initError;
+    return firestore;
   }
-  return firestore;
+  try {
+    // The modular API: firebase-admin v10 removed the old `admin.apps` namespace, and reaching
+    // for it is what silently sent production entitlements to a temporary file.
+    const { initializeApp, getApps, cert } = require("firebase-admin/app");
+    const { getFirestore } = require("firebase-admin/firestore");
+    const credential = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    const app = getApps().length ? getApps()[0] : initializeApp({ credential: cert(credential) });
+    firestore = getFirestore(app);
+    return firestore;
+  } catch (err) {
+    initError = new Error(`Firestore is configured but unusable: ${err.message}`);
+    throw initError;
+  }
 }
 
 const readFile = () => {
@@ -48,13 +53,7 @@ const readFile = () => {
   }
 };
 
-const writeFile = (data) => {
-  try {
-    fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error("Billing store write failed:", err.message);
-  }
-};
+const writeFile = (data) => fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
 
 const key = (email) => String(email || "").toLowerCase();
 
@@ -85,4 +84,15 @@ async function updateRecord(email, patch) {
   return next;
 }
 
-module.exports = { recordFor, updateRecord, usingFirestore: () => !!db() };
+/** For /api/health: which backend is live, and whether it is healthy. */
+function status() {
+  if (!configured()) return { store: "local file", ok: true, note: "set FIREBASE_SERVICE_ACCOUNT for production" };
+  try {
+    db();
+    return { store: "firestore", ok: true };
+  } catch (err) {
+    return { store: "firestore", ok: false, error: err.message };
+  }
+}
+
+module.exports = { recordFor, updateRecord, status, usingFirestore: () => configured() };

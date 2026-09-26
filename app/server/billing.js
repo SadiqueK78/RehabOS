@@ -35,6 +35,7 @@ router.post("/api/billing/checkout", async (req, res) => {
  * the success page, which is what makes an asynchronous UPI payment safe to rely on.
  */
 router.get("/api/billing/subscription", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   try {
     res.json(await core.getEntitlements(req.query.email));
   } catch (err) {
@@ -79,8 +80,10 @@ router.post("/api/billing/webhook", express.raw({ type: "application/json" }), a
   try {
     await core.handleEvent(event);
   } catch (err) {
-    // Answer 200 anyway: a retry storm helps nobody, and the error is logged for us.
+    // Answer with an error so Stripe retries: a 200 here would mean the payment is never
+    // retried even though nothing was stored.
     console.error("Stripe webhook handling failed:", event.type, err.message);
+    return res.status(500).send(`Handler error: ${err.message}`);
   }
   res.json({ received: true });
 });

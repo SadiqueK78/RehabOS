@@ -42,8 +42,18 @@ production: a patient would pay and lose their plan on the next page load. With
 instead. Get the JSON from Firebase Console → Project settings → Service accounts → Generate new
 private key, and paste the whole file as the value.
 
-Check which one is live at any time: `GET /api/health` reports
-`"entitlementStore": "firestore"` or `"local file"`.
+Check which one is live at any time:
+
+```
+curl https://<your-project>.vercel.app/api/health
+# { "status": "ok", "stripe": "configured",
+#   "entitlementStore": { "store": "firestore", "ok": true } }
+```
+
+If the service account is set but unusable, this answers **500** with
+`"entitlementStore": { "store": "firestore", "ok": false, "error": "..." }`, and the webhook
+answers 500 too so Stripe keeps retrying until it is fixed. It never quietly writes to the
+temporary file instead, because that loses the payment.
 
 ## The Stripe webhook
 
@@ -77,7 +87,8 @@ to a clearly labelled test mode that grants plans without payment.
 
 ```
 curl https://<your-project>.vercel.app/api/health
-# { "status": "ok", "stripe": "configured", "entitlementStore": "firestore" }
+# { "status": "ok", "stripe": "configured",
+#   "entitlementStore": { "store": "firestore", "ok": true } }
 ```
 
 Then buy a plan in Stripe test mode and confirm it sticks:
