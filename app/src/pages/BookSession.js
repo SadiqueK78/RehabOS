@@ -102,7 +102,7 @@ function BookSession() {
     const allowance = canBookSession({
       subscription: ent.subscription,
       appointments,
-      extraSessions: ent.sessions.limit - ent.plan.liveSessionsPerMonth,
+      extraSessions: ent.extraSessions,
     });
     if (!allowance.allowed) {
       toast.error(allowance.message);
@@ -256,21 +256,25 @@ function BookSession() {
               value={therapistChoice.id}
               onChange={setTherapistChoice}
               allowed={ent.therapistChoice}
+              loading={!ent.ready}
               label="Which physiotherapist would you like?"
             />
           </div>
 
+          {/* Until the plan is known, say so rather than showing the free-plan numbers. */}
           <Alert
-            severity={ent.sessions.exhausted || ent.sessions.limit === 0 ? "warning" : "success"}
+            severity={!ent.ready ? "info" : ent.sessions.exhausted || ent.sessions.limit === 0 ? "warning" : "success"}
             sx={{ mb: 1, borderRadius: 3 }}
             action={
-              ent.sessions.exhausted || ent.sessions.limit === 0 ? (
+              ent.ready && (ent.sessions.exhausted || ent.sessions.limit === 0) ? (
                 <Button size="small" component={Link} to="/pricing">
                   See plans
                 </Button>
               ) : null
             }>
-            {ent.sessions.limit === 0
+            {!ent.ready
+              ? "Checking your plan…"
+              : ent.sessions.limit === 0
               ? "Live sessions come with the Recover plan and above."
               : `${ent.sessions.remaining} of ${ent.sessions.limit} live sessions left this month on ${ent.plan.name}.`}
           </Alert>
@@ -284,6 +288,7 @@ function BookSession() {
               !preferredTime ||
               !injuryDetails.trim() ||
               submitting ||
+              !ent.ready ||
               ent.sessions.exhausted ||
               ent.sessions.limit === 0
             }

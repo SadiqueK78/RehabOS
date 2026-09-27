@@ -44,6 +44,7 @@ export function useEntitlement() {
             currentPeriodEnd: sub.currentPeriodEnd,
             currentPeriodStart: sub.currentPeriodStart || null,
             startedAt: sub.startedAt || null,
+            cancelAtPeriodEnd: !!sub.cancelAtPeriodEnd,
           });
         }
       } catch {
@@ -64,7 +65,21 @@ export function useEntitlement() {
     return entitlement({ subscription, appointments, rehabPlans, extraSessions });
   }, [serverSub, data, appointments]);
 
-  return { ...value, user, email, appointments, loading: loading || !checked, isDemo, subscription: serverSub || data?.subscription || null };
+  const ready = !loading && checked;
+  return {
+    ...value,
+    user,
+    email,
+    appointments,
+    // `ready` is false until both the patient record and the billing server have answered.
+    // Until then the numbers describe the free plan, which is wrong for anyone who pays: screens
+    // must wait rather than tell a subscriber they have no sessions.
+    ready,
+    loading: !ready,
+    isDemo,
+    extraSessions: serverSub?.extraSessions ?? data?.extraSessions ?? 0,
+    subscription: serverSub || data?.subscription || null,
+  };
 }
 
 export default useEntitlement;

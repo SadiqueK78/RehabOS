@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Box, Button, Chip, LinearProgress, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, LinearProgress, Skeleton, Stack, Typography } from "@mui/material";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import toast from "react-hot-toast";
@@ -14,7 +14,7 @@ import { openBillingPortal, startCheckout } from "../../utils/billing/billing";
  * this month, and what to do when they run out.
  */
 function PlanCard({ sx }) {
-  const { plan, sessions, plans, renewsOn, email, subscription, isDemo } = useEntitlement();
+  const { plan, sessions, plans, renewsOn, endsOn, endingAtPeriodEnd, email, subscription, isDemo, ready } = useEntitlement();
   const [busy, setBusy] = useState(false);
   const upgrade = nextPlanUp(plan.id);
   const testMode = subscription?.testMode;
@@ -49,8 +49,16 @@ function PlanCard({ sx }) {
     <SectionCard
       title="Your plan"
       icon={<WorkspacePremiumIcon />}
-      action={<Chip size="small" label={plan.name} color={plan.priceInr ? "primary" : "default"} />}
+      action={ready ? <Chip size="small" label={plan.name} color={plan.priceInr ? "primary" : "default"} /> : null}
       sx={sx}>
+      {!ready ? (
+        <Stack spacing={1.5}>
+          <Skeleton variant="text" width={140} height={40} />
+          <Skeleton variant="rounded" height={10} />
+          <Skeleton variant="text" width="60%" />
+          <Skeleton variant="rounded" width={180} height={32} />
+        </Stack>
+      ) : (
       <Stack spacing={1.5}>
         <Stack direction="row" alignItems="baseline" spacing={1}>
           <Typography variant="h5" sx={{ fontWeight: 800 }}>
@@ -81,15 +89,26 @@ function PlanCard({ sx }) {
             />
           )}
           <Typography variant="caption" color="text.secondary">
-            {sessions.limit
-              ? `Renews ${renewsOn.toLocaleDateString()}`
-              : "Upgrade to see a physiotherapist on video"}
+            {!sessions.limit
+              ? "Upgrade to see a physiotherapist on video"
+              : endingAtPeriodEnd
+              ? `Yours until ${endsOn.toLocaleDateString()}`
+              : `Renews ${renewsOn.toLocaleDateString()}`}
           </Typography>
         </Box>
 
         <Typography variant="body2" color="text.secondary">
           Rehab plans: {plans.used} of {plans.limit} in use
         </Typography>
+
+        {endingAtPeriodEnd && (
+          <Chip
+            size="small"
+            color="warning"
+            variant="outlined"
+            label={`Cancelled — ends ${endsOn.toLocaleDateString()}, then Self-guided`}
+          />
+        )}
 
         {testMode && (
           <Chip size="small" color="warning" variant="outlined" label="Test mode — no payment was taken" />
@@ -113,6 +132,7 @@ function PlanCard({ sx }) {
           )}
         </Stack>
       </Stack>
+      )}
     </SectionCard>
   );
 }

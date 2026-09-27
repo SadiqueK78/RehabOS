@@ -123,23 +123,48 @@ export function sessionMonth(appt) {
   return Number.isNaN(d.getTime()) ? null : monthKey(d);
 }
 
+/** The moment a session is booked for, in ms, or null when it has no date yet. */
+export function sessionDate(appt) {
+  const date = appt?.scheduledDate || appt?.preferredDate;
+  if (!date) return null;
+  const d = new Date(`${date}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d.getTime();
+}
+
 /**
- * Sessions booked this month and rehab plans held, from the patient's own records.
+ * The window the monthly allowance is counted over.
  *
- * `since` is when the current plan started. Sessions booked before that were booked under a
- * different arrangement and do not spend this plan's allowance — otherwise a patient who books
- * a session and subscribes afterwards finds their new plan already used up.
+ * Stripe's own billing period when we know it, because that is when the patient is actually
+ * charged again. Counting by calendar month instead handed out a free set of sessions on the
+ * 1st: someone billed on the 26th would use their two sessions, watch the month tick over, and
+ * find the allowance full again five days later.
  */
-export function usage({ appointments = [], rehabPlans = [], since = null } = {}, now = new Date()) {
-  const thisMonth = monthKey(now);
+export function billingPeriod(subscription, now = new Date()) {
+  const start = subscription?.currentPeriodStart;
+  const end = subscription?.currentPeriodEnd;
+  if (start && end && end > start) return { start, end, source: "stripe" };
+  const first = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+  return { start: first, end: next, source: "calendar" };
+}
+
+/**
+ * Sessions booked in the current period and rehab plans held.
+ *
+ * `since` is when the plan began: sessions booked before that were arranged under a different
+ * arrangement and do not spend this plan's allowance, so subscribing never starts you used up.
+ */
+export function usage({ appointments = [], rehabPlans = [], since = null, period = null } = {}, now = new Date()) {
+  const window = period || billingPeriod(null, now);
   const sessions = appointments.filter((a) => {
     if (!a || a.status === "cancelled") return false;
-    if (sessionMonth(a) !== thisMonth) return false;
+    const when = sessionDate(a);
+    if (when === null || when < window.start || when >= window.end) return false;
     if (since && a.createdAt && a.createdAt < since) return false;
     return true;
   }).length;
   const plans = rehabPlans.filter((p) => p && p.status !== "archived").length;
-  return { sessionsThisMonth: sessions, rehabPlans: plans, month: thisMonth };
+  return { sessionsThisMonth: sessions, rehabPlans: plans, period: window };
 }
 
 const allowance = (limit, used, extra = 0) => {
@@ -153,17 +178,24 @@ const allowance = (limit, used, extra = 0) => {
  */
 export function entitlement({ subscription, appointments, rehabPlans, extraSessions = 0 } = {}, now = new Date()) {
   const plan = activePlan(subscription);
-  // The allowance counts from the start of the current billing period, or from when the plan
-  // was first granted.
+  const period = billingPeriod(subscription, now);
+  // Sessions booked before the plan started belong to whatever came before it.
   const since = subscription?.currentPeriodStart || subscription?.startedAt || null;
-  const used = usage({ appointments, rehabPlans, since }, now);
+  const used = usage({ appointments, rehabPlans, since, period }, now);
+  // Stripe reports a cancellation that has been scheduled but not yet taken effect; until the
+  // period ends the patient keeps everything they paid for.
+  const ending = !!subscription?.cancelAtPeriodEnd && plan.priceInr > 0;
   return {
     plan,
     sessions: allowance(plan.liveSessionsPerMonth, used.sessionsThisMonth, extraSessions),
     plans: allowance(plan.rehabPlans, used.rehabPlans),
     therapistChoice: plan.therapistChoice,
     priorityBooking: plan.priorityBooking,
-    renewsOn: nextReset(now),
+    period,
+    endingAtPeriodEnd: ending,
+    // What the date at the end of the period means: a renewal, or the last day of access.
+    renewsOn: new Date(period.end),
+    endsOn: ending ? new Date(period.end) : null,
   };
 }
 

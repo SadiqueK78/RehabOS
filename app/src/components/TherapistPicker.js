@@ -21,7 +21,7 @@ const initials = (name = "") =>
  * silently doing nothing. "No preference" stays available on every plan, because a patient who
  * wants the earliest appointment should not have to pick a name to get one.
  */
-function TherapistPicker({ value, onChange, allowed = true, label = "Your physiotherapist" }) {
+function TherapistPicker({ value, onChange, allowed = true, loading = false, label = "Your physiotherapist" }) {
   const [therapists, setTherapists] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -43,6 +43,16 @@ function TherapistPicker({ value, onChange, allowed = true, label = "Your physio
       cancelled = true;
     };
   }, []);
+
+  // Saying "this comes with a paid plan" to someone who is already paying, just because their
+  // plan has not loaded yet, is worse than saying nothing for a moment.
+  if (loading) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        Checking your plan…
+      </Typography>
+    );
+  }
 
   if (!allowed) {
     return (

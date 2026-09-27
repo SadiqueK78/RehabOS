@@ -93,6 +93,7 @@ async function getEntitlements(email) {
     status: record.status || null,
     customerId: record.customerId || null,
     subscriptionId: record.subscriptionId || null,
+    cancelAtPeriodEnd: !!record.cancelAtPeriodEnd,
     currentPeriodStart: record.currentPeriodStart || null,
     currentPeriodEnd: record.currentPeriodEnd || null,
     // Records written before startedAt existed fall back to when they were last written.
@@ -191,6 +192,9 @@ async function handleEvent(event) {
         customerId: typeof object.customer === "string" ? object.customer : object.customer?.id || null,
         currentPeriodStart: object.current_period_start ? object.current_period_start * 1000 : null,
         currentPeriodEnd: object.current_period_end ? object.current_period_end * 1000 : null,
+        // Cancelled from Stripe's portal but still paid up until the period ends. Access stays
+        // on; only the wording changes from "renews" to "ends".
+        cancelAtPeriodEnd: !!object.cancel_at_period_end,
       });
       break;
     }

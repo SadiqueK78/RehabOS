@@ -3,13 +3,13 @@ import {
   FREE_PLAN,
   planById,
   activePlan,
-  sessionMonth,
+  sessionDate,
+  billingPeriod,
   usage,
   entitlement,
   canBookSession,
   canCreateRehabPlan,
   canChooseTherapist,
-  nextReset,
   priceLabel,
   nextPlanUp,
 } from "./plans";
@@ -60,10 +60,10 @@ describe("which plan is in force", () => {
 });
 
 describe("counting what has been used", () => {
-  it("counts sessions in the month they are booked for", () => {
-    expect(sessionMonth(appt("2026-09-24"))).toBe("2026-09");
-    expect(sessionMonth({ preferredDate: "2026-10-02" })).toBe("2026-10");
-    expect(sessionMonth({})).toBeNull();
+  it("reads the date a session is booked for", () => {
+    expect(new Date(sessionDate(appt("2026-09-24"))).getDate()).toBe(24);
+    expect(new Date(sessionDate({ preferredDate: "2026-10-02" })).getMonth()).toBe(9);
+    expect(sessionDate({})).toBeNull();
   });
 
   it("ignores cancelled sessions and other months", () => {
@@ -142,11 +142,59 @@ describe("what a patient may do", () => {
     expect(canChooseTherapist({ subscription: null }).message).toMatch(/Recover plan/);
   });
 
-  it("renews the allowance on the first of next month", () => {
-    const reset = nextReset(NOW);
-    expect(reset.getMonth()).toBe(9); // October
-    expect(reset.getDate()).toBe(1);
-    expect(nextReset(new Date("2026-12-15T10:00:00")).getFullYear()).toBe(2027);
+  it("renews on Stripe's billing date, not the first of the month", () => {
+    const sub = {
+      planId: "recover",
+      status: "active",
+      currentPeriodStart: new Date("2026-09-26T00:00:00").getTime(),
+      currentPeriodEnd: new Date("2026-10-26T00:00:00").getTime(),
+    };
+    const e = entitlement({ subscription: sub }, NOW);
+    expect(e.renewsOn.getDate()).toBe(26);
+    expect(e.period.source).toBe("stripe");
+  });
+
+  it("does not hand out a fresh allowance when the calendar month ticks over", () => {
+    // Billed on the 26th: sessions used in September still count on 2 October.
+    const sub = {
+      planId: "recover",
+      status: "active",
+      startedAt: new Date("2026-09-26T00:00:00").getTime(),
+      currentPeriodStart: new Date("2026-09-26T00:00:00").getTime(),
+      currentPeriodEnd: new Date("2026-10-26T00:00:00").getTime(),
+    };
+    const appointments = [
+      appt("2026-09-28", "completed", new Date("2026-09-27T09:00:00").getTime()),
+      appt("2026-09-29", "scheduled", new Date("2026-09-27T09:00:00").getTime()),
+    ];
+    const inOctober = new Date("2026-10-02T10:00:00");
+    const e = entitlement({ subscription: sub, appointments }, inOctober);
+    expect(e.sessions.used).toBe(2);
+    expect(e.sessions.exhausted).toBe(true);
+  });
+
+  it("keeps everything paid for after a cancellation is scheduled", () => {
+    const sub = {
+      planId: "recover",
+      status: "active",
+      cancelAtPeriodEnd: true,
+      startedAt: new Date("2026-09-26T00:00:00").getTime(),
+      currentPeriodStart: new Date("2026-09-26T00:00:00").getTime(),
+      currentPeriodEnd: new Date("2026-10-26T00:00:00").getTime(),
+    };
+    const e = entitlement({ subscription: sub, extraSessions: 1 }, NOW);
+    expect(e.plan.id).toBe("recover", "access continues until the period ends");
+    expect(e.sessions.limit).toBe(3, "the extra session bought on top is still there");
+    expect(e.endingAtPeriodEnd).toBe(true);
+    expect(e.endsOn.getDate()).toBe(26);
+    expect(canBookSession({ subscription: sub, appointments: [] }, NOW).allowed).toBe(true);
+  });
+
+  it("drops to the free plan once Stripe actually ends it", () => {
+    const ended = { planId: null, status: "canceled" };
+    const e = entitlement({ subscription: ended }, NOW);
+    expect(e.plan.id).toBe("free");
+    expect(e.endingAtPeriodEnd).toBe(false);
   });
 });
 

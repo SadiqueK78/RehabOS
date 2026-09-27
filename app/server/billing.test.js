@@ -97,6 +97,54 @@ test("a failed renewal marks the account past due rather than cutting it off", a
   assert.equal(record.currentPeriodEnd, 1790000000 * 1000);
 });
 
+test("cancelling from the portal keeps access until the period ends", async () => {
+  await handleEvent(event("checkout.session.completed", checkout()));
+  // What Stripe sends when someone cancels in the billing portal: still active, but flagged.
+  await handleEvent(
+    event("customer.subscription.updated", {
+      id: "sub_123",
+      customer: "cus_123",
+      status: "active",
+      cancel_at_period_end: true,
+      metadata: { email: EMAIL, planId: "care" },
+      current_period_start: 1789000000,
+      current_period_end: 1791000000,
+    })
+  );
+  const record = await recordFor(EMAIL);
+  assert.equal(record.planId, "care", "they paid for this period");
+  assert.equal(record.status, "active");
+  assert.equal(record.cancelAtPeriodEnd, true);
+  assert.equal(record.currentPeriodEnd, 1791000000 * 1000);
+
+  // Later, when the period runs out, Stripe deletes it for real.
+  await handleEvent(
+    event("customer.subscription.deleted", {
+      id: "sub_123",
+      customer: "cus_123",
+      status: "canceled",
+      metadata: { email: EMAIL, planId: "care" },
+    })
+  );
+  assert.equal((await recordFor(EMAIL)).planId, null);
+});
+
+test("an extra session survives the subscription ending", async () => {
+  await handleEvent(event("checkout.session.completed", checkout()));
+  await handleEvent(
+    event("checkout.session.completed", checkout({ metadata: { email: EMAIL, planId: "sessionTopup" } }))
+  );
+  await handleEvent(
+    event("customer.subscription.deleted", {
+      id: "sub_123", customer: "cus_123", status: "canceled",
+      metadata: { email: EMAIL, planId: "care" },
+    })
+  );
+  const record = await recordFor(EMAIL);
+  assert.equal(record.planId, null, "the plan is gone");
+  assert.equal(record.extraSessions, 1, "but the session they paid for separately is not");
+});
+
 test("an unrelated event changes nothing", async () => {
   await handleEvent(event("payment_intent.created", { id: "pi_1" }));
   assert.equal(await recordFor(EMAIL), null);

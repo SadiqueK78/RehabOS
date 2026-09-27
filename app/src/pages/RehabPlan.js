@@ -423,6 +423,7 @@ function RehabPlan() {
                       value={reviewer.id}
                       onChange={setReviewer}
                       allowed={ent.therapistChoice}
+                      loading={!ent.ready}
                       label="Who should review this plan?"
                     />
                   </Box>
